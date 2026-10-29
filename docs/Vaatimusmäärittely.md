@@ -146,24 +146,24 @@ Asiakkaan ja tiimin yhteisesti sovittavat Must-vaatimukset ovat MVP:n sisältö.
 
 | ID    | Vaatimus                                                                                     | Prioriteetti |
 | ----- | -------------------------------------------------------------------------------------------- | ------------ |
-| FR-42 | Käyttäjällä on toivelista: elokuvat, jotka hän haluaa katsoa ja joita ei ole vielä katsottu. | Must         |
-| FR-43 | Käyttäjällä on suosikkilista: elokuvat, jotka hän on katsonut ja joita hän suosittelee.      | Must         |
-| FR-44 | Käyttäjä voi jakaa listansa linkkinä. Linkin avaaminen ei vaadi käyttäjätiliä.               | Should       |
-| FR-45 | Lista voi olla piilotettu, jolloin se on nähtävissä vain linkin kautta.                      | Could        |
+| FR-43 | Käyttäjällä on toivelista: elokuvat, jotka hän haluaa katsoa ja joita ei ole vielä katsottu. | Must         |
+| FR-44 | Käyttäjällä on suosikkilista: elokuvat, jotka hän on katsonut ja joita hän suosittelee.      | Must         |
+| FR-45 | Käyttäjä voi jakaa listansa linkkinä. Linkin avaaminen ei vaadi käyttäjätiliä.               | Should       |
+| FR-46 | Lista voi olla piilotettu, jolloin se on nähtävissä vain linkin kautta.                      | Could        |
 
 ### 4.6 Suositukset
 
 | ID    | Vaatimus                                                                                                                                                                            | Prioriteetti |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| FR-46 | Palvelu ehdottaa elokuvia käyttäjän historian perusteella. Suositukset eivät jumitu yhteen tyyliin (esim. pelkkiä Stallone-elokuvia katsova saa ehdotuksia myös muista elokuvista). | Could        |
-| FR-47 | Käyttäjä voi poistaa ehdotuksen omasta suosituslistastaan.                                                                                                                          | Could        |
+| FR-47 | Palvelu ehdottaa elokuvia käyttäjän historian perusteella. Suositukset eivät jumitu yhteen tyyliin (esim. pelkkiä Stallone-elokuvia katsova saa ehdotuksia myös muista elokuvista). | Could        |
+| FR-48 | Käyttäjä voi poistaa ehdotuksen omasta suosituslistastaan.                                                                                                                          | Could        |
 
 ### 4.7 Ylläpito ja data
 
 | ID    | Vaatimus                                                                                                                    | Prioriteetti |
 | ----- | --------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| FR-48 | Sivuston ylläpitäjä (admin) -käyttäjä, jolla on koko palvelun laajuiset oikeudet. Roolit ja laajuus sovitaan myöhemmin.     | Could        |
-| FR-49 | Palvelu voi koostaa tilastoa siitä, mistä elokuvista käyttäjät pitävät. Yksittäisiä henkilötietoja ei myydä eikä luovuteta. | Could        |
+| FR-49 | Sivuston ylläpitäjä (admin) -käyttäjä, jolla on koko palvelun laajuiset oikeudet. Roolit ja laajuus sovitaan myöhemmin.     | Could        |
+| FR-50 | Palvelu voi koostaa tilastoa siitä, mistä elokuvista käyttäjät pitävät. Yksittäisiä henkilötietoja ei myydä eikä luovuteta. | Could        |
 
 ### 4.8 Tarkemmat hyväksymiskriteerit: FR-21 (liittymispyyntö)
 
