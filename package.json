@@ -44,6 +44,7 @@
     "node": "24.x"
   },
   "overrides": {
-    "chokidar": "^4.0.3"
+    "chokidar": "^4.0.3",
+    "minimatch": "^11.0.4"
   }
 }
