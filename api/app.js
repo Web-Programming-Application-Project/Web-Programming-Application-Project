@@ -4,6 +4,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import csrfProtection from './middleware/csrf.js'
 import errorHandler from './middleware/errorHandler.js'
 import testRouter from './routes/testRouter.js'
 import authRouter from './routes/authRouter.js'
@@ -22,6 +23,7 @@ app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 
 // csrf tähä
+app.use(csrfProtection)
 
 app.use('/api/tests', testRouter)
 app.use('/api/auth', authRouter)
