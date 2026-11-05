@@ -1,5 +1,38 @@
-export default function Loginpage() {
+import { useState } from 'react'
+import { useNavigate } from 'react-router'
+import { useAuth } from '../components/authContext.js'
+
+export default function Login() {
+  const { login } = useAuth()
+  const navigate = useNavigate()
+  const [error, setError] = useState('')
+
+  async function submit(e) {
+    e.preventDefault()
+    setError('')
+    try {
+      await login(e.target.email.value, e.target.password.value)
+      navigate('/watchlist', { replace: true })
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
   return (
-    <h1>Loginsivu</h1>
+    <>
+      <h1>Kirjaudu</h1>
+      <form onSubmit={submit}>
+        <label>
+          Sähköposti
+          <input name='email' type='email' required />
+        </label>
+        <label>
+          Salasana
+          <input name='password' type='password' required />
+        </label>
+        <button>Kirjaudu</button>
+      </form>
+      {error && <p role='alert'>{error}</p>}
+    </>
   )
 }
