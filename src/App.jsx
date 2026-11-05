@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './App.css'
+import { Routes,Route } from 'react-router-dom'
 import Homepage from './pages/Homepage'
+import Navbar from './components/navbar/Navbar'
+import Loginpage from './pages/Loginpage'
+import NotFound from './pages/NotFound'
 
 function App() {
   const [data, setData] = useState([])
@@ -28,7 +32,14 @@ function App() {
 
   return (
     <>
-      <Homepage />
+      <Navbar />
+      <div id="container">
+        <Routes>
+          <Route path="/" exact element={<Homepage />} />
+          <Route path="/login" exact element={<Loginpage />} />
+          <Route path="/*" exact element={<NotFound />} />
+        </Routes>
+      </div>
       <div className="card">
         {loading && <p>Loading...</p>}
 
