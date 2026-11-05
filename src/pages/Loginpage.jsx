@@ -14,7 +14,7 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      await login(e.target.email.value, e.target.password.value)
+      await login(e.target.identifier.value, e.target.password.value)
       navigate('/', { replace: true })
     } catch (err) {
       setError(err.message)
