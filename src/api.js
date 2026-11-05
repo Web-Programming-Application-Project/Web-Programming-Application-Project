@@ -15,8 +15,9 @@ const buildHeaders = (options) => {
   if (options.body) headers['Content-Type'] = 'application/json'
 
   const method = (options.method || 'GET').toUpperCase()
-  if (method !== 'GET' && method !== 'HEAD')
+  if (method !== 'GET' && method !== 'HEAD') {
     headers['X-CSRF-Token'] = readCsrfToken()
+  }
 
   return headers
 }

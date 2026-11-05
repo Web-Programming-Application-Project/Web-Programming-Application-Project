@@ -3,33 +3,32 @@ import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import cors from 'cors'
-<<<<<<< HEAD
-=======
 import cookieParser from 'cookie-parser'
 import csrfProtection from './middleware/csrf.js'
->>>>>>> 32b1ec8 (csrf)
 import errorHandler from './middleware/errorHandler.js'
 import testRouter from './routes/testRouter.js'
+import authRouter from './routes/authRouter.js'
 
 const app = express()
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const frontendDist = path.join(__dirname, '..', 'dist')
 
+// x forward stuffia
+app.set('trust proxy', 1)
+
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-<<<<<<< HEAD
-=======
 app.use(cookieParser())
 
 // csrf tähä
 app.use(csrfProtection)
->>>>>>> 32b1ec8 (csrf)
 
 app.use('/api/tests', testRouter)
+app.use('/api/auth', authRouter)
 
-// Health check endpoint for database connectivity
+// healtti dblle
 app.get('/api/health', async (req, res) => {
   try {
     const { pool } = await import('./models/db.js')
