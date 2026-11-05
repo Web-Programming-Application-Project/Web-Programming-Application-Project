@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './App.css'
+import Homepage from './pages/Homepage'
 
 function App() {
   const [data, setData] = useState([])
@@ -10,7 +11,7 @@ function App() {
   const fetchData = async () => {
     setLoading(true)
     setError(null)
-    
+
     try {
       const response = await axios.get('/api/tests')
       setData(response.data)
@@ -27,10 +28,10 @@ function App() {
 
   return (
     <>
-      <h1>Docker Sample</h1>
+      <Homepage />
       <div className="card">
         {loading && <p>Loading...</p>}
-        
+
         {data && (
           <div style={{ marginTop: '20px', padding: '10px', background: '#f0f0f0' }}>
             <h3>Data from Backend:</h3>
@@ -43,7 +44,7 @@ function App() {
             </ul>
           </div>
         )}
-        
+
         {error && (
           <div style={{ marginTop: '20px', padding: '10px', background: '#ffebee', color: 'red' }}>
             <h3>Error:</h3>
