@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../components/authContext.js'
 
 export default function Login() {
@@ -12,7 +12,7 @@ export default function Login() {
     setError('')
     try {
       await login(e.target.email.value, e.target.password.value)
-      navigate('/watchlist', { replace: true })
+      navigate('/', { replace: true })
     } catch (err) {
       setError(err.message)
     }
