@@ -3,6 +3,11 @@ import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import cors from 'cors'
+<<<<<<< HEAD
+=======
+import cookieParser from 'cookie-parser'
+import csrfProtection from './middleware/csrf.js'
+>>>>>>> 32b1ec8 (csrf)
 import errorHandler from './middleware/errorHandler.js'
 import testRouter from './routes/testRouter.js'
 
@@ -14,6 +19,13 @@ const frontendDist = path.join(__dirname, '..', 'dist')
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
+<<<<<<< HEAD
+=======
+app.use(cookieParser())
+
+// csrf tähä
+app.use(csrfProtection)
+>>>>>>> 32b1ec8 (csrf)
 
 app.use('/api/tests', testRouter)
 
