@@ -1,8 +1,3 @@
-<<<<<<< Updated upstream
-export default function Loginpage() {
-  return (
-    <h1>Loginsivu</h1>
-=======
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../components/authContext.js'
@@ -39,6 +34,5 @@ export default function Login() {
       </form>
       {error && <p role='alert'>{error}</p>}
     </>
->>>>>>> Stashed changes
   )
 }
