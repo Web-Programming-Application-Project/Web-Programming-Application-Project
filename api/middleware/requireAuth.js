@@ -18,7 +18,7 @@ const requireAuth = async (req, res, next) => {
     if (!user)
       return res.status(401).json({ error: 'Käyttäjää ei löydy' })
 
-    req.user = { id: user.id, email: user.email }
+    req.user = { id: user.id, username: user.username, email: user.email }
     next()
   } catch {
     return res.status(401).json({ error: 'Istunto ei ole voimassa' })

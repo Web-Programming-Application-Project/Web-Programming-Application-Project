@@ -1,7 +1,8 @@
 import argon2 from 'argon2'
 import jwt from 'jsonwebtoken'
-import { createUser, findByEmail } from '../models/User.js'
+import { createUser, findByEmail, findByUsername, findByIdentifier } from '../models/User.js'
 import { COOKIE_NAME, TOKEN_CLAIMS } from '../config.js'
+import validator from 'validator'
 
 // http only turva per ohjeet
 
@@ -12,22 +13,43 @@ const cookieOptions = {
   path: '/'
 }
 
-const isValidEmail = (email) => Boolean(email) && email.length <= 254
+const UNIQUE_VIOLATION = '23505'
+
+const trimmed = (value) => (typeof value === 'string' ? value.trim() : '')
+
+const isValidEmail = (email) => validator.isEmail(email) && email.length <= 254
+
+const isValidUsername = (username) =>
+  validator.isLength(username, { min: 3, max: 30 }) &&
+  validator.isAlphanumeric(username, 'fi-FI', { ignore: '_.-' })
 
 const isValidPassword = (password) =>
   typeof password === 'string' && password.length >= 8 && password.length <= 128
 
-const validateCredentials = (body = {}) => {
-  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
-  const password = body.password
-  return isValidEmail(email) && isValidPassword(password) ? { email, password } : null
+const isValidRegistration = ({ username, email, password }) =>
+  isValidUsername(username) && isValidEmail(email) && isValidPassword(password)
+
+const parseRegistration = (body = {}) => {
+  const data = {
+    username: trimmed(body.username),
+    email: trimmed(body.email).toLowerCase(),
+    password: body.password
+  }
+  return isValidRegistration(data) ? data : null
 }
 
-const publicUser = (user) => ({ id: user.id, email: user.email })
+const parseLogin = (body = {}) => {
+  const identifier = trimmed(body.identifier)
+  const { password } = body
+  const valid = validator.isLength(identifier, { min: 1, max: 254 }) && isValidPassword(password)
+  return valid ? { identifier, password } : null
+}
+
+const publicUser = (user) => ({ id: user.id, username: user.username, email: user.email })
 
 // JWT 30 timeoutti
 const issueCookie = (res, user) => {
-  const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ sub: String(user.id) }, process.env.JWT_SECRET, {
     expiresIn: '30m',
     algorithm: 'HS256',
     ...TOKEN_CLAIMS
@@ -35,34 +57,52 @@ const issueCookie = (res, user) => {
   res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: 30 * 60 * 1000 })
 }
 
+// palauttaa virheviestin jos sähköposti tai käyttäjänimi on varattu
+const findConflict = async (username, email) => {
+  if (await findByEmail(email)) return 'Sähköposti on jo käytössä'
+  if (await findByUsername(username)) return 'Käyttäjänimi on jo käytössä'
+  return null
+}
+
+const handleRegisterError = (error, res, next) => {
+  if (error.code === UNIQUE_VIOLATION)
+    return res.status(409).json({ error: 'Käyttäjänimi tai sähköposti on jo käytössä' })
+  next(error)
+}
+
 // salasana argoni
 const register = async (req, res, next) => {
   try {
-    const credentials = validateCredentials(req.body)
-    if (!credentials)
-      return res.status(400).json({ error: 'Anna kelvollinen sähköposti ja salasana' })
+    const data = parseRegistration(req.body)
+    if (!data)
+      return res.status(400).json({ error: 'Anna kelvollinen käyttäjänimi, sähköposti ja salasana' })
 
-    if (await findByEmail(credentials.email))
-      return res.status(409).json({ error: 'Sähköposti on jo käytössä' })
+    const conflict = await findConflict(data.username, data.email)
+    if (conflict) return res.status(409).json({ error: conflict })
 
-    const passwordHash = await argon2.hash(credentials.password)
-    const user = await createUser({ email: credentials.email, passwordHash })
+    const passwordHash = await argon2.hash(data.password)
+    const user = await createUser({ username: data.username, email: data.email, passwordHash })
 
     res.status(201).json({ message: 'Käyttäjä luotu', user: publicUser(user) })
   } catch (error) {
-    next(error)
+    handleRegisterError(error, res, next)
   }
 }
 
-// kirjautiminen chekataan argonilla
+// palauttaa käyttäjän jos tunnus ja salasana täsmäävät, muuten null
+const authenticate = async (body) => {
+  const input = parseLogin(body)
+  const user = input ? await findByIdentifier(input.identifier) : null
+  const passwordOk = user && await argon2.verify(user.passwordHash, input.password)
+  return passwordOk ? user : null
+}
+
+// kirjautuminen: email tai username
 const login = async (req, res, next) => {
   try {
-    const credentials = validateCredentials(req.body)
-    const user = credentials ? await findByEmail(credentials.email) : null
-    const passwordOk = user && await argon2.verify(user.passwordHash, credentials.password)
-
-    if (!passwordOk)
-      return res.status(401).json({ error: 'Virheellinen sähköposti tai salasana' })
+    const user = await authenticate(req.body)
+    if (!user)
+      return res.status(401).json({ error: 'Virheellinen tunnus tai salasana' })
 
     issueCookie(res, user)
     res.json({ user: publicUser(user) })

@@ -11,7 +11,7 @@ export default function Login() {
     e.preventDefault()
     setError('')
     try {
-      await login(e.target.email.value, e.target.password.value)
+      await login(e.target.identifier.value, e.target.password.value)
       navigate('/', { replace: true })
     } catch (err) {
       setError(err.message)
@@ -23,8 +23,8 @@ export default function Login() {
       <h1>Kirjaudu</h1>
       <form onSubmit={submit}>
         <label>
-          Sähköposti
-          <input name='email' type='email' required />
+          Sähköposti tai käyttäjänimi
+          <input name='identifier' type='text' required />
         </label>
         <label>
           Salasana

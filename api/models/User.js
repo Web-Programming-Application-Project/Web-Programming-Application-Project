@@ -1,21 +1,50 @@
-import { randomUUID } from 'node:crypto'
+import { pool } from './db.js'
 
-// muistis enne ku db yhdistys jne jne
+const COLUMNS = 'id, username, email, hashed_password'
 
-const users = new Map()
+const toUser = (row) =>
+  row
+    ? {
+      id: row.id,
+      username: row.username,
+      email: row.email,
+      passwordHash: row.hashed_password
+    }
+    : null
 
-const createUser = async ({ email, passwordHash }) => {
-  const user = { id: randomUUID(), email, passwordHash }
-  users.set(user.id, user)
-  return user
+const createUser = async ({ username, email, passwordHash }) => {
+  const result = await pool.query(
+    `INSERT INTO users (username, email, hashed_password)
+     VALUES ($1, $2, $3)
+     RETURNING ${COLUMNS}`,
+    [username, email, passwordHash]
+  )
+  return toUser(result.rows[0])
 }
 
 const findByEmail = async (email) => {
-  return [...users.values()].find((user) => user.email === email) || null
+  const result = await pool.query(`SELECT ${COLUMNS} FROM users WHERE email = $1`, [email])
+  return toUser(result.rows[0])
+}
+
+const findByUsername = async (username) => {
+  const result = await pool.query(`SELECT ${COLUMNS} FROM users WHERE username = $1`, [username])
+  return toUser(result.rows[0])
 }
 
 const findById = async (id) => {
-  return users.get(id) || null
+  const result = await pool.query(`SELECT ${COLUMNS} FROM users WHERE id = $1`, [id])
+  return toUser(result.rows[0])
 }
 
-export { createUser, findByEmail, findById }
+const findByIdentifier = async (identifier) => {
+  const result = await pool.query(
+    `SELECT ${COLUMNS} FROM users
+     WHERE email = lower($1) OR lower(username) = lower($1)
+     LIMIT 1`,
+    [identifier]
+  )
+  return toUser(result.rows[0])
+}
+
+export { createUser, findByEmail, findByUsername, findByIdentifier, findById }
