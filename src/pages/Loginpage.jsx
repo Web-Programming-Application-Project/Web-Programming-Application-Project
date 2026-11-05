@@ -33,7 +33,7 @@ export default function Login() {
             <div className="mb-3">
             <label className="form-label">
               Sähköposti
-              <input className="form-control" name='email' type='email' required />
+              <input className="form-control" name='identifier' type='text' required />
             </label>
             </div>
             <div className="mb-3">
