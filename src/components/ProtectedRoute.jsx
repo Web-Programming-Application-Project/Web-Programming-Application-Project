@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router'
+import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from './authContext.js'
 
 export default function ProtectedRoute() {
