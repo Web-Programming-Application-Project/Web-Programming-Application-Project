@@ -44,7 +44,6 @@ export default defineConfig([
       'max-depth': ['warn', 3],
       // Warn when a function is longer than 50 lines (blank lines and comments not counted)
       'max-lines-per-function': ['warn', {
-        max: 50,
         skipBlankLines: true,
         skipComments: true
       }],
