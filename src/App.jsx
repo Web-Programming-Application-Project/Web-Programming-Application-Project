@@ -27,13 +27,13 @@ function App() {
 
   return (
     <>
-      <h1>Docker Sample</h1>
+      <h1>Docker sample</h1>
       <div className="card">
         {loading && <p>Loading...</p>}
         
         {data && (
           <div style={{ marginTop: '20px', padding: '10px', background: '#f0f0f0' }}>
-            <h3>Data from Backend:</h3>
+            <h3>Data from:</h3>
             <ul style={{ textAlign: 'left', margin: '10px 0' }}>
               { data.map((item) => (
                 <li key={item.id} style={{ marginBottom: '10px' }}>
@@ -51,6 +51,29 @@ function App() {
           </div>
         )}
       </div>
+
+      {/*FOOTER*/}
+      <footer id="contact">
+        {/*<div>*/}
+          {/*<h2>FindMovie</h2>*/}
+        {/*</div>*/}
+
+        <div>
+          <h3>Somet</h3>
+          <p><a href="#tiktok">Tik Tok</a></p>
+          <p><a href="#YT">YouTube</a></p>
+        </div>
+
+        <div>
+          <h3>Yhteystiedot</h3>
+          <p>Email: ur@screwed.fi</p>
+          <p>Phone: 69</p>
+        </div>
+
+        <p>
+          © 2026 FindMovie. Ryhmä 8.
+        </p>
+      </footer>
     </>
   )
 }
