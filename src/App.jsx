@@ -32,6 +32,9 @@ function App() {
 
   return (
     <>
+<<<<<<< HEAD
+      <h1>Docker sample</h1>
+=======
       <Navbar />
       <div id="container">
         <Routes>
@@ -40,12 +43,13 @@ function App() {
           <Route path="/*" exact element={<NotFound />} />
         </Routes>
       </div>
+>>>>>>> 60b9505a240036d2d17a0b4d891a43b13268f71e
       <div className="card">
         {loading && <p>Loading...</p>}
 
         {data && (
           <div style={{ marginTop: '20px', padding: '10px', background: '#f0f0f0' }}>
-            <h3>Data from Backend:</h3>
+            <h3>Data from:</h3>
             <ul style={{ textAlign: 'left', margin: '10px 0' }}>
               { data.map((item) => (
                 <li key={item.id} style={{ marginBottom: '10px' }}>
