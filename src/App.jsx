@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './App.css'
+import { Routes,Route } from 'react-router-dom'
+import Homepage from './pages/Homepage'
+import Navbar from './components/navbar/Navbar'
+import Loginpage from './pages/Loginpage'
+import NotFound from './pages/NotFound'
 
 function App() {
   const [data, setData] = useState([])
@@ -10,7 +15,7 @@ function App() {
   const fetchData = async () => {
     setLoading(true)
     setError(null)
-    
+
     try {
       const response = await axios.get('/api/tests')
       setData(response.data)
@@ -27,10 +32,21 @@ function App() {
 
   return (
     <>
+<<<<<<< HEAD
       <h1>Docker sample</h1>
+=======
+      <Navbar />
+      <div id="container">
+        <Routes>
+          <Route path="/" exact element={<Homepage />} />
+          <Route path="/login" exact element={<Loginpage />} />
+          <Route path="/*" exact element={<NotFound />} />
+        </Routes>
+      </div>
+>>>>>>> 60b9505a240036d2d17a0b4d891a43b13268f71e
       <div className="card">
         {loading && <p>Loading...</p>}
-        
+
         {data && (
           <div style={{ marginTop: '20px', padding: '10px', background: '#f0f0f0' }}>
             <h3>Data from:</h3>
@@ -43,7 +59,7 @@ function App() {
             </ul>
           </div>
         )}
-        
+
         {error && (
           <div style={{ marginTop: '20px', padding: '10px', background: '#ffebee', color: 'red' }}>
             <h3>Error:</h3>
