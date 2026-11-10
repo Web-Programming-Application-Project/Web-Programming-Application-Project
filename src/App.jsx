@@ -7,6 +7,7 @@ import Navbar from './components/navbar/Navbar'
 import Loginpage from './pages/Loginpage'
 import Registerpage from './pages/Registerpage'
 import NotFound from './pages/NotFound'
+import Footer from './components/footer/Footer'
 
 function App() {
   const [data, setData] = useState([])
@@ -41,6 +42,7 @@ function App() {
           <Route path="/register" exact element={<Registerpage />} />
           <Route path="/*" exact element={<NotFound />} />
         </Routes>
+        <Footer />
       </div>
       <div className="card">
         {loading && <p>Loading...</p>}
