@@ -23,13 +23,21 @@ export function AuthProvider({ children }) {
     setUser(data.user)
   }
 
+  async function register(username, email, password) {
+    await api('/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password }),
+    })
+  }
+
   async function logout() {
     await api('/auth/logout', { method: 'POST' })
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   )
