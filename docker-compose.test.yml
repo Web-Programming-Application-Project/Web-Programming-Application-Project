@@ -1,0 +1,29 @@
+# testi compose
+include:
+  - docker-compose.yml
+
+services:
+  tester:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=database
+      - E2E_BASE_URL=http://frontend:5173
+      - HOME=/tmp
+    user: "1000:1000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npx eslint . --fix && npx vitest run tests/api tests/integration && npx playwright test"
+    depends_on:
+      database:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    profiles:
+      - test
