@@ -1,23 +1,23 @@
-{/*FOOTER*/}
-  <footer id="contact">
-      {/*Extra nimi*/}
-      {/*<div>*/}
-        {/*<h2>FindMovie</h2>*/}
-      {/*</div>*/}
+import './Footer.css'
 
-      <div>
-        <h3>Somet</h3>
-        <p><a href="#tiktok">Tik Tok</a></p>
-        <p><a href="#YT">YouTube</a></p>
+export default function Footer() {
+  return (
+    <footer className="footer">
+      <div className="container">
+        <div className="somet">
+            <h3 className="otsikko">Somet</h3>
+            <p><a href="#tiktok">TikTok</a></p>
+            <p><a href="#YT">YouTube</a></p>
+        </div>
+        <div className="yhteystiedot">
+            <h3>Yhteystiedot</h3>
+            <p>Email: findmovie@help.com</p>
+            <p>Phone: 04569696969</p>
+        </div>
+        <p className="copyright">
+           <a href="https://github.com/Web-Programming-Application-Project/Web-Programming-Application-Project/blob/main/LICENSE" target="_blank">© 2026 Web Programming Application Project </a>
+        </p>
       </div>
-
-      <div>
-        <h3>Yhteystiedot</h3>
-        <p>Email: ur@screwed.fi</p>
-        <p>Phone: 69</p>
-      </div>
-
-      <p>
-        © 2026 FindMovie. Ryhmä 8.
-      </p>
-  </footer>
+    </footer>
+  )
+}
