@@ -21,6 +21,10 @@ dist-ssr
 *.sln
 *.sw?
 
+# Playwright
+playwright-report/
+test-results/
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
