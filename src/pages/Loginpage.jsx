@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../components/authContext.js'
 import './Loginpage.css'
 
@@ -45,6 +45,9 @@ export default function Login() {
             <button className="btn btn-primary w-100" disabled={loading}>Kirjaudu</button>
           </form>
           {error && <p className="alert alert-danger" role='alert'>{error}</p>}
+          <p className="text-center mt-3 mb-0">
+            Eikö ole tiliä? <Link to="/register">Rekisteröidy</Link>
+          </p>
           </div>
         </div>
       </div>
