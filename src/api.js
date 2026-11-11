@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 const parseError = (data) => {
   if (typeof data.error === 'string') return data.error
   return data.error?.message || 'Pyyntö epäonnistui'
@@ -22,13 +24,29 @@ const buildHeaders = (options) => {
   return headers
 }
 
+const client = axios.create({
+  baseURL: '/api',
+  timeout: 15000,
+  withCredentials: true,
+  headers: { Accept: 'application/json' }
+})
+
+client.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const wrapped = new Error(parseError(error.response?.data || {}))
+    wrapped.status = error.response?.status
+    return Promise.reject(wrapped)
+  }
+)
+
 export async function api(path, options = {}) {
-  const response = await fetch('/api' + path, {
-    ...options,
-    credentials: 'same-origin',
-    headers: buildHeaders(options),
+  const { body, ...config } = options
+  const response = await client.request({
+    ...config,
+    url: path,
+    data: config.data ?? body,
+    headers: buildHeaders(options)
   })
-  const data = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(parseError(data))
-  return data
+  return response.data
 }

@@ -40,11 +40,11 @@ app.get('/api/health', async (req, res) => {
       database: 'connected',
       timestamp: new Date().toISOString()
     })
-  } catch (error) {
+  } catch {
     res.status(500).json({
       status: 'unhealthy',
       database: 'disconnected',
-      error: error.message,
+      error: 'Tietokantayhteys epäonnistui',
       timestamp: new Date().toISOString()
     })
   }
