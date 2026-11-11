@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { api } from '../api.js'
 import './Homepage.css'
 
 export default function Homepage() {
@@ -7,9 +8,7 @@ export default function Homepage() {
   useEffect(() => {
     async function loadMovies() {
       try {
-        const response = await fetch('/api/movies')
-        if (!response.ok) throw new Error('Failed to load movies')
-        const data = await response.json()
+        const data = await api('/movies')
         setMovies(data)
       } catch (err) {
         console.error(err)
@@ -30,7 +29,7 @@ export default function Homepage() {
             <div className="card h-100">
               <img
                 className="card-img-top"
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                src={`https://image.tmdb.org/t/p/w500${movie.posterPath}`}
                 alt={movie.title}
               />
               <div className="card-body">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import { api } from './api.js'
 import './App.css'
 import { Routes,Route } from 'react-router-dom'
 import Homepage from './pages/Homepage'
@@ -19,8 +19,8 @@ function App() {
     setError(null)
 
     try {
-      const response = await axios.get('/api/tests')
-      setData(response.data)
+      const data = await api('/tests')
+      setData(data)
     } catch (err) {
       setError(err.message)
     } finally {
