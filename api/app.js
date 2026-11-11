@@ -8,6 +8,7 @@ import csrfProtection from './middleware/csrf.js'
 import errorHandler from './middleware/errorHandler.js'
 import testRouter from './routes/testRouter.js'
 import authRouter from './routes/authRouter.js'
+import movieRouter from './routes/movieRouter.js'
 
 const app = express()
 
@@ -27,6 +28,7 @@ app.use(csrfProtection)
 
 app.use('/api/tests', testRouter)
 app.use('/api/auth', authRouter)
+app.use('/api/movies', movieRouter)
 
 // healtti dblle
 app.get('/api/health', async (req, res) => {
