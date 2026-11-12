@@ -113,4 +113,9 @@ const login = async (req, res, next) => {
 
 const me = (req, res) => res.json({ user: req.user })
 
-export { register, login, me }
+const logout = (req, res) => {
+  res.clearCookie(COOKIE_NAME, cookieOptions)
+  res.status(204).end()
+}
+
+export { register, login, me, logout }

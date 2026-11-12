@@ -122,3 +122,22 @@ describe('POST /api/auth/login', () => {
     expect((res.headers['set-cookie'] ?? []).some((c) => c.startsWith('auth='))).toBe(false)
   })
 })
+
+describe('POST /api/auth/logout', () => {
+  it('clears the session cookie', async () => {
+    findByIdentifier.mockResolvedValue({
+      id: 1,
+      username: 'testaaja',
+      email: 'testaaja@example.com',
+      passwordHash: await argon2.hash(PASSWORD)
+    })
+
+    await post('/api/auth/login', { identifier: 'testaaja', password: PASSWORD }).expect(200)
+
+    const res = await post('/api/auth/logout').expect(204)
+
+    const cleared = res.headers['set-cookie'].find((c) => c.startsWith('auth='))
+    expect(cleared).toBeDefined()
+    expect(cleared).toMatch(/^auth=;/)
+  })
+})
