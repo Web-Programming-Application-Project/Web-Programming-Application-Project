@@ -1,0 +1,12 @@
+.account-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+}
+
+.account-card {
+  max-width: 400px;
+  width: 100%;
+  align-items: center;
+}

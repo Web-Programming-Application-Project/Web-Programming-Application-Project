@@ -38,3 +38,15 @@ test('login through the form lands on the home page', async ({ page }) => {
   await expect(page).toHaveURL(/\/$/)
   await expect(page.getByRole('heading', { name: 'Top movies:' })).toBeVisible()
 })
+
+test('logout returns the navbar to the login link', async ({ page }) => {
+  const user = uniqueUser()
+  await fillRegisterForm(page, user)
+  await page.locator('input[name="identifier"]').fill(user.username)
+  await page.locator('input[name="password"]').fill(user.password)
+  await page.getByRole('button', { name: 'Kirjaudu' }).click()
+
+  await page.getByRole('button', { name: 'Logout' }).click()
+
+  await expect(page.getByRole('link', { name: 'Login' })).toBeVisible()
+})
