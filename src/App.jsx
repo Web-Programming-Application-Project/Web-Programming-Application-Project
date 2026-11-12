@@ -10,27 +10,6 @@ import NotFound from './pages/NotFound'
 import Footer from './components/footer/Footer'
 
 function App() {
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  const fetchData = async () => {
-    setLoading(true)
-    setError(null)
-
-    try {
-      const data = await api('/tests')
-      setData(data)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchData()
-  }, [])
 
   return (
     <>
@@ -43,29 +22,6 @@ function App() {
           <Route path="/*" exact element={<NotFound />} />
         </Routes>
         <Footer />
-      </div>
-      <div className="card">
-        {loading && <p>Loading...</p>}
-
-        {data && (
-          <div style={{ marginTop: '20px', padding: '10px', background: '#f0f0f0' }}>
-            <h3>Data from Backend:</h3>
-            <ul style={{ textAlign: 'left', margin: '10px 0' }}>
-              { data.map((item) => (
-                <li key={item.id} style={{ marginBottom: '10px' }}>
-                  {`ID: ${item.id} - ${item.description}`}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {error && (
-          <div style={{ marginTop: '20px', padding: '10px', background: '#ffebee', color: 'red' }}>
-            <h3>Error:</h3>
-            <p>{error}</p>
-          </div>
-        )}
       </div>
     </>
   )
