@@ -1,5 +1,3 @@
-import { useState, useEffect } from 'react'
-import { api } from './api.js'
 import './App.css'
 import { Routes,Route } from 'react-router-dom'
 import Homepage from './pages/Homepage'
