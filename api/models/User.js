@@ -47,4 +47,8 @@ const findByIdentifier = async (identifier) => {
   return toUser(result.rows[0])
 }
 
-export { createUser, findByEmail, findByUsername, findByIdentifier, findById }
+const updatePassword = async (id, passwordHash) => {
+  await pool.query('UPDATE users SET hashed_password = $2 WHERE id = $1', [id, passwordHash])
+}
+
+export { createUser, findByEmail, findByUsername, findByIdentifier, findById, updatePassword }

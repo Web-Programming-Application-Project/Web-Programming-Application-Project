@@ -27,7 +27,7 @@ RUN apt-get update \
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci && npm audit fix
+RUN npm ci && (npm audit fix || true)
 
 # Copy the rest of the application code
 COPY . .

@@ -4,6 +4,7 @@ import Homepage from './pages/Homepage'
 import Navbar from './components/navbar/Navbar'
 import Loginpage from './pages/Loginpage'
 import Registerpage from './pages/Registerpage'
+import ResetPasswordpage from './pages/ResetPasswordpage'
 import NotFound from './pages/NotFound'
 import Footer from './components/footer/Footer'
 import Accountpage from './pages/Accountpage'
@@ -20,6 +21,7 @@ function App() {
           <Route path="/" exact element={<Homepage />} />
           <Route path="/login" exact element={<Loginpage />} />
           <Route path="/register" exact element={<Registerpage />} />
+          <Route path="/reset-password" element={<ResetPasswordpage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<Accountpage />} />
           </Route>
