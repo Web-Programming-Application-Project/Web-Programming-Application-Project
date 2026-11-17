@@ -8,6 +8,7 @@ import NotFound from './pages/NotFound'
 import Footer from './components/footer/Footer'
 import Accountpage from './pages/Accountpage'
 import ProtectedRoute from './components/ProtectedRoute'
+import Listpage from './pages/Listpage'
 
 function App() {
 
@@ -21,6 +22,9 @@ function App() {
           <Route path="/register" exact element={<Registerpage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<Accountpage />} />
+          </Route>
+          <Route element={<ProtectedRoute />}>
+            <Route path="/lists" element={<Listpage />} />
           </Route>
           <Route path="/*" exact element={<NotFound />} />
         </Routes>

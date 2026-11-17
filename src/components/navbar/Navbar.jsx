@@ -42,6 +42,9 @@ export default function Navbar() {
                   <Link className="nav-link" to="/profile">Account</Link>
                 </li>
                 <li className="nav-item">
+                  <Link className="nav-link" to="/lists">Lists</Link>
+                </li>
+                <li className="nav-item">
                   <button
                     type="button"
                     className="nav-link btn btn-link"
