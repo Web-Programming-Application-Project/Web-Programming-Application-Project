@@ -15,7 +15,7 @@ import { createUser, findByEmail, findByIdentifier, findById } from '../../../ap
 
 import app from '../../../api/app.js'
 
-process.env.JWT_SECRET ||= 'test-secret'
+process.env.JWT_SECRET ||= 'test-sen tecret'
 
 const PASSWORD = 'salasana123'
 
