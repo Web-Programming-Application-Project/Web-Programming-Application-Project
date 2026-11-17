@@ -6,6 +6,7 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import csrfProtection from './middleware/csrf.js'
 import errorHandler from './middleware/errorHandler.js'
+import requirePageAuth from './middleware/requirePageAuth.js'
 import testRouter from './routes/testRouter.js'
 import authRouter from './routes/authRouter.js'
 import movieRouter from './routes/movieRouter.js'
@@ -55,6 +56,8 @@ app.use('/api', (req, res, next) => {
   error.status = 404
   next(error)
 })
+
+app.get(['/lists', '/profile'], requirePageAuth)
 
 app.use(express.static(frontendDist))
 
