@@ -1,6 +1,9 @@
 import argon2 from 'argon2'
 import jwt from 'jsonwebtoken'
-import { createUser, findByEmail, findByUsername, findByIdentifier } from '../models/User.js'
+import {
+  createUser, findByEmail, findByUsername, findByIdentifier, findById, updatePassword
+} from '../models/User.js'
+import { sendPasswordResetEmail } from '../services/mailer.js'
 import { COOKIE_NAME, TOKEN_CLAIMS } from '../config.js'
 import validator from 'validator'
 
@@ -111,6 +114,65 @@ const login = async (req, res, next) => {
   }
 }
 
+
+// salasana resetti
+const RESET_MINUTES = Number(process.env.PASSWORD_RESET_TTL_MINUTES) || 60
+const RESET_CLAIMS = { issuer: TOKEN_CLAIMS.issuer, audience: 'elokuvaprojekti-reset' }
+const resetSecret = (user) => process.env.JWT_SECRET + user.passwordHash
+
+const findResetUser = async (token) => {
+  const sub = jwt.decode(token)?.sub
+  const user = /^\d+$/.test(sub) ? await findById(sub) : null
+  if (!user) return null
+  try {
+    jwt.verify(token, resetSecret(user), { algorithms: ['HS256'], ...RESET_CLAIMS })
+    return user
+  } catch {
+    return null
+  }
+}
+
+const requestPasswordReset = async (req, res, next) => {
+  try {
+    const email = trimmed(req.body?.email).toLowerCase()
+    if (!isValidEmail(email))
+      return res.status(400).json({ error: 'Anna kelvollinen sähköposti' })
+
+    const user = await findByEmail(email)
+    if (user) {
+      const token = jwt.sign({ sub: String(user.id) }, resetSecret(user), {
+        expiresIn: `${RESET_MINUTES}m`,
+        algorithm: 'HS256',
+        ...RESET_CLAIMS
+      })
+      const baseUrl = process.env.APP_BASE_URL || 'http://localhost:5173'
+      sendPasswordResetEmail(user.email, `${baseUrl}/reset-password?token=${token}`, RESET_MINUTES)
+        .catch((error) => console.error('Salasanan palautusviestin lähetys epäonnistui', error))
+    }
+
+    res.json({ message: 'Jos sähköposti on rekisteröity, saat pian salasanan palautuslinkin' })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const confirmPasswordReset = async (req, res, next) => {
+  try {
+    const { token, password } = req.body ?? {}
+    if (typeof token !== 'string' || !isValidPassword(password))
+      return res.status(400).json({ error: 'Anna kelvollinen salasana (8–128 merkkiä)' })
+
+    const user = await findResetUser(token)
+    if (!user)
+      return res.status(400).json({ error: 'Palautuslinkki on virheellinen tai vanhentunut' })
+
+    await updatePassword(user.id, await argon2.hash(password))
+    res.json({ message: 'Salasana vaihdettu' })
+  } catch (error) {
+    next(error)
+  }
+}
+
 const me = (req, res) => res.json({ user: req.user })
 
 const logout = (req, res) => {
@@ -118,4 +180,4 @@ const logout = (req, res) => {
   res.status(204).end()
 }
 
-export { register, login, me, logout }
+export { register, login, me, logout, requestPasswordReset, confirmPasswordReset }
