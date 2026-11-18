@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Form, Link } from 'react-router-dom'
 
 export default function Navbar() {
   return (
@@ -30,6 +30,32 @@ export default function Navbar() {
               </Link>
             </li>
           </ul>
+
+          <form className="d-flex"
+            role="search"
+            onSubmit={(e) => {
+              e.preventDefault()
+              const query = e.target.elements.q.value.trim()
+
+              if (query) {
+                window.location.href = `/search?q=${encodeURIComponent(query)}`
+              }
+            }}
+           >
+
+           <input className="form-control me-2"
+              type="search"
+              name="q"
+              placeholder="Search..."
+              aria-label="Search"
+           />
+
+            <button className="btn-outline-success"
+              type="submit">
+              Search
+            </button>
+          </form>
+
         </div>
       </div>
     </nav>
