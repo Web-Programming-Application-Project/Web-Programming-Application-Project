@@ -11,10 +11,11 @@ vi.mock('../../../api/models/User.js', () => ({
   findById: vi.fn()
 }))
 
-import { createUser, findByEmail, findByIdentifier } from '../../../api/models/User.js'
+import { createUser, findByEmail, findByIdentifier, findById } from '../../../api/models/User.js'
+
 import app from '../../../api/app.js'
 
-process.env.JWT_SECRET ||= 'test-secret'
+process.env.JWT_SECRET ||= 'test-sen tecret'
 
 const PASSWORD = 'salasana123'
 
@@ -120,5 +121,44 @@ describe('POST /api/auth/login', () => {
     }).expect(401)
 
     expect((res.headers['set-cookie'] ?? []).some((c) => c.startsWith('auth='))).toBe(false)
+  })
+})
+
+describe('POST /api/auth/logout', () => {
+  const login = async () => {
+    findByIdentifier.mockResolvedValue({
+      id: 1,
+      username: 'testaaja',
+      email: 'testaaja@example.com',
+      passwordHash: await argon2.hash(PASSWORD)
+    })
+    await post('/api/auth/login', { identifier: 'testaaja', password: PASSWORD }).expect(200)
+  }
+
+  it('clears the session cookie', async () => {
+    await login()
+
+    const res = await post('/api/auth/logout').expect(204)
+
+    const cleared = res.headers['set-cookie'].find((c) => c.startsWith('auth='))
+    expect(cleared).toBeDefined()
+    expect(cleared).toMatch(/^auth=;/)
+  })
+
+  it('ends the session so /me is no longer authorized', async () => {
+    await login()
+    findById.mockResolvedValue({
+      id: 1,
+      username: 'testaaja',
+      email: 'testaaja@example.com',
+      passwordHash: 'hash'
+    })
+
+    await post('/api/auth/logout').expect(204)
+    await agent.get('/api/auth/me').expect(401)
+  })
+
+  it('succeeds even without an active session', async () => {
+    await post('/api/auth/logout').expect(204)
   })
 })

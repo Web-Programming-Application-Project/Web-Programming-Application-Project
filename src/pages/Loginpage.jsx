@@ -46,6 +46,9 @@ export default function Login() {
             </form>
             {error && <p className="alert alert-danger" role='alert'>{error}</p>}
             <p className="text-center mt-3 mb-0">
+              <Link to="/reset-password">Unohtuiko salasana?</Link>
+            </p>
+            <p className="text-center mt-2 mb-0">
               Eikö ole tiliä? <Link to="/register">Rekisteröidy</Link>
             </p>
           </div>
