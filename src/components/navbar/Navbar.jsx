@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../authContext'
 
+
 export default function Navbar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -63,6 +64,32 @@ export default function Navbar() {
               </li>
             )}
           </ul>
+
+          <form className="d-flex"
+            role="search"
+            onSubmit={(e) => {
+              e.preventDefault()
+              const query = e.target.elements.q.value.trim()
+
+              if (query) {
+                window.location.href = `/search?q=${encodeURIComponent(query)}`
+              }
+            }}
+           >
+
+           <input className="form-control me-2"
+              type="search"
+              name="q"
+              placeholder="Search..."
+              aria-label="Search"
+           />
+
+            <button className="btn-outline-success"
+              type="submit">
+              Search
+            </button>
+          </form>
+
         </div>
       </div>
     </nav>
