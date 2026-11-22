@@ -43,8 +43,8 @@ const mapped = (id) => ({
 
 const resultsFor = (url, params) => {
   if (url === '/genre/movie/list') return params.language === 'en-US' ? ENGLISH : GENRES
-  if (url === '/discover/movie') return { results: [movie(3), movie(4)] }
-  if (url === '/movie/popular') return { results: [movie(1), movie(2)] }
+  if (url === '/discover/movie') return { results: [movie(3), movie(4)], total_pages: 3 }
+  if (url === '/movie/popular') return { results: [movie(1), movie(2)], total_pages: 900 }
   return { results: [] }
 }
 
@@ -100,7 +100,14 @@ describe('getMoviesByCategories', () => {
     const movies = await service.getMoviesByCategories('kauhu')
 
     expect(paramsOf('/discover/movie').with_genres).toBe('27')
-    expect(movies).toEqual([mapped(3), mapped(4)])
+    expect(movies).toEqual({ results: [mapped(3), mapped(4)], page: 1, totalPages: 3 })
+  })
+
+  it('page', async () => {
+    const movies = await service.getMoviesByCategories('kauhu', { page: 2 })
+
+    expect(paramsOf('/discover/movie').page).toBe(2)
+    expect(movies.page).toBe(2)
   })
 
   it('english name', async () => {
@@ -130,7 +137,9 @@ describe('getMoviesByCategories', () => {
   })
 
   it('limit', async () => {
-    await expect(service.getMoviesByCategories('kauhu', { limit: 1 })).resolves.toEqual([mapped(3)])
+    const movies = await service.getMoviesByCategories('kauhu', { limit: 1 })
+
+    expect(movies.results).toEqual([mapped(3)])
   })
 
   it('unknown category', async () => {
@@ -140,6 +149,69 @@ describe('getMoviesByCategories', () => {
 
   it('empty categories', async () => {
     await expect(service.getMoviesByCategories('')).rejects.toMatchObject({ status: 400 })
+  })
+})
+
+describe('discover cache', () => {
+  it('same query', async () => {
+    const service = await loadService()
+
+    await service.getMoviesByCategories('kauhu')
+    await service.getMoviesByCategories('kauhu')
+
+    expect(discoverCalls()).toHaveLength(1)
+  })
+
+  it('different page or sort', async () => {
+    const service = await loadService()
+
+    await service.getMoviesByCategories('kauhu')
+    await service.getMoviesByCategories('kauhu', { page: 2 })
+    await service.getMoviesByCategories('kauhu', { sortBy: 'vote_average.desc' })
+
+    expect(discoverCalls()).toHaveLength(3)
+  })
+})
+
+describe('getMoviesSorted', () => {
+  let service
+
+  beforeEach(async () => {
+    service = await loadService()
+  })
+
+  it('no genres', async () => {
+    const movies = await service.getMoviesSorted({ sortBy: 'vote_average.desc' })
+
+    expect(paramsOf('/discover/movie')).not.toHaveProperty('with_genres')
+    expect(paramsOf('/discover/movie').sort_by).toBe('vote_average.desc')
+    expect(movies.results).toEqual([mapped(3), mapped(4)])
+  })
+
+  it('best rated needs votes', async () => {
+    await service.getMoviesSorted({ sortBy: 'vote_average.desc' })
+
+    expect(paramsOf('/discover/movie')['vote_count.gte']).toBe(200)
+  })
+
+  it('newest skips unreleased', async () => {
+    await service.getMoviesSorted({ sortBy: 'primary_release_date.desc' })
+
+    expect(paramsOf('/discover/movie')['primary_release_date.lte']).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+
+  it('popularity has no guards', async () => {
+    await service.getMoviesSorted({ sortBy: 'popularity.desc' })
+
+    expect(paramsOf('/discover/movie')).not.toHaveProperty('vote_count.gte')
+    expect(paramsOf('/discover/movie')).not.toHaveProperty('primary_release_date.lte')
+  })
+
+  it('cache', async () => {
+    await service.getMoviesSorted({ sortBy: 'vote_average.desc' })
+    await service.getMoviesSorted({ sortBy: 'vote_average.desc' })
+
+    expect(discoverCalls()).toHaveLength(1)
   })
 })
 
@@ -155,6 +227,20 @@ describe('getPopularMovies', () => {
     await service.getPopularMovies(2)
 
     expect(popularCalls()).toHaveLength(1)
+  })
+
+  it('page', async () => {
+    await service.getPopularMovies(20, 1)
+    await service.getPopularMovies(20, 2)
+
+    expect(popularCalls()).toHaveLength(2)
+    expect(paramsOf('/movie/popular').page).toBe(2)
+  })
+
+  it('total pages capped', async () => {
+    const movies = await service.getPopularMovies()
+
+    expect(movies.totalPages).toBe(500)
   })
 
   it('tmdb error', async () => {

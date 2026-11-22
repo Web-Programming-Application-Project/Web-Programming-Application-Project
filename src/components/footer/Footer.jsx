@@ -3,7 +3,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 
 export default function Footer() {
   return (
-    <footer className="footer">
+    <footer className="footer mt-auto py-4 bg-body-tertiary border-top">
       <div className="container">
         {/*
         <div className="somet">
@@ -12,14 +12,26 @@ export default function Footer() {
           <p><a href="#YT">YouTube</a></p>
         </div>
         */}
-        <div className="yhteystiedot">
-          <h5 className="otsikko">Contact Us</h5>
-          <p><i class="bi bi-envelope"></i>  email@findmovie.help</p>
-          <p><i class="bi bi-telephone"></i> +358 40 123 4567</p>
+        <div className="row align-items-center gy-3 text-center text-md-start">
+          <div className="col-md-6 yhteystiedot">
+            <h5 className="otsikko h6 fw-semibold mb-2">Contact Us</h5>
+            <ul className="list-unstyled mb-0">
+              <li>
+                <a className="link-secondary link-underline-opacity-0" href="mailto:email@findmovie.help">
+                  <i className="bi bi-envelope me-2"></i>email@findmovie.help
+                </a>
+              </li>
+              <li>
+                <a className="link-secondary link-underline-opacity-0" href="tel:+358401234567">
+                  <i className="bi bi-telephone me-2"></i>+358 40 123 4567
+                </a>
+              </li>
+            </ul>
+          </div>
+          <p className="col-md-6 text-md-end mb-0 copyright">
+            <a className="link-secondary link-underline-opacity-0" href="https://github.com/Web-Programming-Application-Project/Web-Programming-Application-Project/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">© 2026 Web Programming Application Project</a>
+          </p>
         </div>
-        <p className="copyright">
-          <a href="https://github.com/Web-Programming-Application-Project/Web-Programming-Application-Project/blob/main/LICENSE" target="_blank">© 2026 Web Programming Application Project </a>
-        </p>
       </div>
     </footer>
   )

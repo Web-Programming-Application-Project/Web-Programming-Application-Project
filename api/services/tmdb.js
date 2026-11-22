@@ -115,33 +115,56 @@ const resolveGenreIds = async (apiKey, categories) => {
   return ids
 }
 
-const fetchPopular = (apiKey) =>
-  cached(`popular:${language()}`, popularTtl, async () => {
+// tmdb palauttaa max 500 sivua
+const maxPages = 500
+
+const toPage = (data, page, limit) => ({
+  results: (Array.isArray(data?.results) ? data.results : []).slice(0, limit).map(toMovie),
+  page,
+  totalPages: Math.min(Number(data?.total_pages) || 1, maxPages)
+})
+
+const fetchPopular = (apiKey, page) =>
+  cached(`popular:${language()}:${page}`, popularTtl, async () => {
     const { data } = await tmdb.get('/movie/popular', {
-      params: { api_key: apiKey, language: language(), page: 1 }
+      params: { api_key: apiKey, language: language(), page }
     })
-    return Array.isArray(data?.results) ? data.results : []
+    return data
   })
 
-const fetchDiscover = async (apiKey, { genreIds, match, sortBy }) => {
-  const { data } = await tmdb.get('/discover/movie', {
-    params: {
-      api_key: apiKey,
-      language: language(),
-      page: 1,
-      sort_by: sortBy,
-      with_genres: genreIds.join(match === 'and' ? ',' : '|')
-    }
-  })
-  return Array.isArray(data?.results) ? data.results : []
+// piilotetaan vähän äänestetyt ja julkaisemattomat elokuvat
+const sortGuards = (sortBy) => {
+  if (sortBy === 'vote_average.desc') return { 'vote_count.gte': 200 }
+  if (sortBy === 'primary_release_date.desc') {
+    return { 'primary_release_date.lte': new Date().toISOString().slice(0, 10) }
+  }
+  return {}
 }
 
-const getPopularMovies = async (limit = 4) => {
+const fetchDiscover = (apiKey, { genreIds, match, sortBy, page }) => {
+  const genres = genreIds.join(match === 'and' ? ',' : '|')
+
+  return cached(`discover:${language()}:${genres}:${sortBy}:${page}`, popularTtl, async () => {
+    const params = {
+      api_key: apiKey,
+      language: language(),
+      page,
+      sort_by: sortBy,
+      ...sortGuards(sortBy)
+    }
+    if (genres) params.with_genres = genres
+
+    const { data } = await tmdb.get('/discover/movie', { params })
+    return data
+  })
+}
+
+const getPopularMovies = async (limit = 20, page = 1) => {
   const apiKey = requireApiKey()
 
   try {
-    const results = await fetchPopular(apiKey)
-    return results.slice(0, limit).map(toMovie)
+    const data = await fetchPopular(apiKey, page)
+    return toPage(data, page, limit)
   } catch (error) {
     throw serviceError(error)
   }
@@ -159,22 +182,36 @@ const getMovieGenres = async () => {
 }
 
 const discoverOptions = (options = {}) => ({
-  limit: options.limit ?? 20,
-  match: options.match ?? 'or',
-  sortBy: options.sortBy ?? 'popularity.desc'
+  limit: 20,
+  match: 'or',
+  sortBy: 'popularity.desc',
+  page: 1,
+  ...options
 })
 
 const getMoviesByCategories = async (categories, options = {}) => {
   const apiKey = requireApiKey()
-  const { limit, match, sortBy } = discoverOptions(options)
+  const { limit, match, sortBy, page } = discoverOptions(options)
 
   try {
     const genreIds = await resolveGenreIds(apiKey, categories)
-    const results = await fetchDiscover(apiKey, { genreIds, match, sortBy })
-    return results.slice(0, limit).map(toMovie)
+    const data = await fetchDiscover(apiKey, { genreIds, match, sortBy, page })
+    return toPage(data, page, limit)
   } catch (error) {
     throw serviceError(error)
   }
 }
 
-export { getPopularMovies, getMovieGenres, getMoviesByCategories }
+const getMoviesSorted = async (options = {}) => {
+  const apiKey = requireApiKey()
+  const { limit, sortBy, page } = discoverOptions(options)
+
+  try {
+    const data = await fetchDiscover(apiKey, { genreIds: [], match: 'or', sortBy, page })
+    return toPage(data, page, limit)
+  } catch (error) {
+    throw serviceError(error)
+  }
+}
+
+export { getPopularMovies, getMovieGenres, getMoviesByCategories, getMoviesSorted }

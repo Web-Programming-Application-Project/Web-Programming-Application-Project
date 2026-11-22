@@ -3,96 +3,211 @@ import { api } from '../api.js'
 import { useCategories } from '../services/useCategories.js'
 import './Homepage.css'
 
-function CategoryFilter({ selected, onSelect }) {
+const sortOptions = [
+  { value: 'popularity.desc', label: 'Suosituimmat' },
+  { value: 'vote_average.desc', label: 'Parhaiten arvioidut' },
+  { value: 'primary_release_date.desc', label: 'Uusimmat' }
+]
+
+function Filters({ category, sort, onCategory, onSort }) {
   const { categories, loading, error, refetch } = useCategories()
 
-  if (loading) return <p className="text-muted mb-3">Ladataan kategorioita…</p>
+  return (
+    <div className="row g-2 mb-4">
+      <div className="col-12 col-sm-6 col-md-4">
+        <label htmlFor="category" className="visually-hidden">Kategoria</label>
+        <select
+          id="category"
+          className="form-select"
+          value={category ?? ''}
+          onChange={(e) => onCategory(e.target.value || null)}
+          disabled={loading || Boolean(error)}
+        >
+          <option value="">{loading ? 'Ladataan kategorioita…' : 'Kaikki kategoriat'}</option>
+          {categories.map((item) => (
+            <option key={item.id} value={item.name}>{item.name}</option>
+          ))}
+        </select>
+        {error && (
+          <p className="text-danger small mt-1 mb-0">
+            Kategorioiden lataus epäonnistui.{' '}
+            <button type="button" className="btn btn-link btn-sm p-0 align-baseline" onClick={refetch}>
+              Yritä uudelleen
+            </button>
+          </p>
+        )}
+      </div>
 
-  if (error) {
+      <div className="col-12 col-sm-6 col-md-4">
+        <label htmlFor="sort" className="visually-hidden">Järjestys</label>
+        <select
+          id="sort"
+          className="form-select"
+          value={sort}
+          onChange={(e) => onSort(e.target.value)}
+        >
+          {sortOptions.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+  )
+}
+
+function MovieCard({ movie }) {
+  const year = movie.releaseDate?.slice(0, 4)
+
+  return (
+    <div className="card movie-card h-100 border-0 shadow-sm">
+      {movie.posterPath ? (
+        <img
+          className="card-img-top"
+          src={`https://image.tmdb.org/t/p/w500${movie.posterPath}`}
+          alt={movie.title}
+          loading="lazy"
+        />
+      ) : (
+        <div className="movie-no-poster">Ei julistetta</div>
+      )}
+      <div className="card-body">
+        <h5 className="card-title fs-6">{movie.title}</h5>
+        <p className="card-text small text-muted mb-0">
+          {year}
+          {movie.voteAverage > 0 && (
+            <span className="float-end">
+              <i className="bi bi-star-fill text-warning"></i> {movie.voteAverage.toFixed(1)}
+            </span>
+          )}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function MovieList({ movies, loading, error }) {
+  if (error) return <p className="alert alert-danger" role="alert">{error}</p>
+
+  if (loading) {
     return (
-      <p className="text-danger mb-3">
-        Kategorioiden lataus epäonnistui.{' '}
-        <button type="button" className="btn btn-link btn-sm p-0" onClick={refetch}>
-          Yritä uudelleen
-        </button>
-      </p>
+      <div className="text-center text-muted py-5">
+        <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+        Ladataan elokuvia…
+      </div>
     )
   }
 
-  return (
-    <div className="d-flex flex-wrap gap-2 mb-3">
-      <button
-        type="button"
-        className={`btn btn-sm ${selected ? 'btn-outline-dark' : 'btn-dark'}`}
-        onClick={() => onSelect(null)}
-      >
-        Kaikki
-      </button>
+  if (movies.length === 0) return <p className="text-muted">Elokuvia ei löytynyt.</p>
 
-      {categories.map((category) => (
-        <button
-          key={category.id}
-          type="button"
-          className={`btn btn-sm ${selected === category.name ? 'btn-dark' : 'btn-outline-dark'}`}
-          onClick={() => onSelect(category.name)}
-        >
-          {category.name}
-        </button>
+  return (
+    <div className="row g-3 g-md-4 mb-4">
+      {movies.map((movie) => (
+        <div key={movie.id} className="col-6 col-md-4 col-lg-3">
+          <MovieCard movie={movie} />
+        </div>
       ))}
     </div>
   )
 }
 
-export default function Homepage() {
-  const [movies, setMovies] = useState([])
-  const [selectedCategory, setSelectedCategory] = useState(null)
+function Pagination({ page, totalPages, onChange }) {
+  if (totalPages <= 1) return null
+
+  const first = page <= 1
+  const last = page >= totalPages
+
+  return (
+    <nav aria-label="Sivutus">
+      <ul className="pagination justify-content-center">
+        <li className={`page-item ${first ? 'disabled' : ''}`}>
+          <button
+            type="button"
+            className="page-link"
+            disabled={first}
+            onClick={() => onChange(page - 1)}
+          >
+            Edellinen
+          </button>
+        </li>
+        <li className="page-item disabled">
+          <span className="page-link">Sivu {page}</span>
+        </li>
+        <li className={`page-item ${last ? 'disabled' : ''}`}>
+          <button
+            type="button"
+            className="page-link"
+            disabled={last}
+            onClick={() => onChange(page + 1)}
+          >
+            Seuraava
+          </button>
+        </li>
+      </ul>
+    </nav>
+  )
+}
+
+function useMovies(category, sort, page) {
+  const [result, setResult] = useState({ movies: [], totalPages: 1, loading: true, error: '' })
 
   useEffect(() => {
     let cancelled = false
+    const params = new URLSearchParams({ page, sort })
+    if (category) params.set('genres', category)
 
-    async function loadMovies() {
-      try {
-        const query = selectedCategory
-          ? `?genres=${encodeURIComponent(selectedCategory)}`
-          : ''
-        const data = await api(`/movies${query}`)
+    setResult((current) => ({ ...current, loading: true, error: '' }))
 
-        if (!cancelled) setMovies(Array.isArray(data) ? data : [])
-      } catch (err) {
-        console.error(err)
-      }
-    }
-
-    loadMovies()
+    api(`/movies?${params}`)
+      .then((data) => {
+        if (!cancelled) {
+          setResult({ movies: data.results, totalPages: data.totalPages, loading: false, error: '' })
+        }
+      })
+      .catch((err) => {
+        // ei päivitetä tilaa jos komponentti on poistunut
+        if (!cancelled) setResult({ movies: [], totalPages: 1, loading: false, error: err.message })
+      })
 
     return () => {
       cancelled = true
     }
-  }, [selectedCategory])
+  }, [category, sort, page])
+
+  return result
+}
+
+export default function Homepage() {
+  const [selectedCategory, setSelectedCategory] = useState(null)
+  const [sort, setSort] = useState(sortOptions[0].value)
+  const [page, setPage] = useState(1)
+  const { movies, totalPages, loading, error } = useMovies(selectedCategory, sort, page)
+
+  function selectCategory(category) {
+    setSelectedCategory(category)
+    setPage(1)
+  }
+
+  function selectSort(value) {
+    setSort(value)
+    setPage(1)
+  }
+
+  function changePage(next) {
+    setPage(next)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
     <div className="container py-4">
-      <h1 className="h3 mb-4">Findmovie</h1>
-      <h1 className="h3 mb-4">Top movies:</h1>
+      <Filters
+        category={selectedCategory}
+        sort={sort}
+        onCategory={selectCategory}
+        onSort={selectSort}
+      />
 
-      <CategoryFilter selected={selectedCategory} onSelect={setSelectedCategory} />
-
-      <div className="row">
-        {movies.map((movie) => (
-          <div key={movie.id} className="col-6 col-md-3 mb-4">
-            <div className="card h-100">
-              <img
-                className="card-img-top"
-                src={`https://image.tmdb.org/t/p/w500${movie.posterPath}`}
-                alt={movie.title}
-              />
-              <div className="card-body">
-                <h5 className="card-title">{movie.title}</h5>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <MovieList movies={movies} loading={loading} error={error} />
+      <Pagination page={page} totalPages={totalPages} onChange={changePage} />
     </div>
   )
 }

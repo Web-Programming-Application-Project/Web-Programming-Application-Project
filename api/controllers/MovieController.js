@@ -1,4 +1,9 @@
-import { getPopularMovies, getMoviesByCategories, getMovieGenres } from '../services/tmdb.js'
+import {
+  getPopularMovies,
+  getMoviesByCategories,
+  getMoviesSorted,
+  getMovieGenres
+} from '../services/tmdb.js'
 
 const SORTS = ['popularity.desc', 'vote_average.desc', 'primary_release_date.desc']
 
@@ -9,11 +14,19 @@ const badRequest = (message) => {
 }
 
 const readLimit = (value) => {
-  if (value === undefined) return 4
+  if (value === undefined) return 20
 
   const limit = Number(value)
   if (!Number.isInteger(limit) || limit < 1 || limit > 20) throw badRequest('Virheellinen limit')
   return limit
+}
+
+const readPage = (value) => {
+  if (value === undefined) return 1
+
+  const page = Number(value)
+  if (!Number.isInteger(page) || page < 1 || page > 500) throw badRequest('Virheellinen page')
+  return page
 }
 
 const readMatch = (value) => {
@@ -28,20 +41,23 @@ const readSort = (value) => {
   return value
 }
 
+const findMovies = (query) => {
+  const limit = readLimit(query.limit)
+  const page = readPage(query.page)
+  const sortBy = readSort(query.sort)
+
+  if (query.genres) {
+    return getMoviesByCategories(query.genres, { limit, page, sortBy, match: readMatch(query.match) })
+  }
+
+  // oletusjärjestyksellä käytetään suosituimpien listaa
+  if (sortBy === 'popularity.desc') return getPopularMovies(limit, page)
+  return getMoviesSorted({ limit, page, sortBy })
+}
+
 const getMovies = async (req, res, next) => {
   try {
-    const limit = readLimit(req.query.limit)
-
-    if (!req.query.genres) {
-      const movies = await getPopularMovies(limit)
-      return res.status(200).json(movies)
-    }
-
-    const movies = await getMoviesByCategories(req.query.genres, {
-      limit,
-      match: readMatch(req.query.match),
-      sortBy: readSort(req.query.sort)
-    })
+    const movies = await findMovies(req.query)
     res.status(200).json(movies)
   } catch (error) {
     next(error)
