@@ -36,7 +36,7 @@ test('login through the form lands on the home page', async ({ page }) => {
   await page.getByRole('button', { name: 'Kirjaudu' }).click()
 
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('heading', { name: 'Top movies:' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible()
 })
 
 test('logout returns the navbar to the login link', async ({ page }) => {

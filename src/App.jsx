@@ -14,7 +14,7 @@ import Listpage from './pages/Listpage'
 function App() {
 
   return (
-    <>
+    <div className="d-flex flex-column min-vh-100">
       <Navbar />
       <div id="container">
         <Routes>
@@ -32,7 +32,7 @@ function App() {
         </Routes>
         <Footer />
       </div>
-    </>
+    </div>
   )
 }
 

@@ -1,4 +1,4 @@
-.Searchbar {
+.searchbar {
     display: flex;
     width: 100%;
     max-width: 400px;
@@ -8,7 +8,7 @@
     background: white;
 }
 
-.Searchbar input {
+.searchbar input {
     flex: 1;
     padding: 13px 18px;
     border: none;
@@ -16,7 +16,7 @@
     font-size: 16px;
 }
 
-.Searchbar button {
+.searchbar button {
     border: none;
     background: #222;
     color: white;

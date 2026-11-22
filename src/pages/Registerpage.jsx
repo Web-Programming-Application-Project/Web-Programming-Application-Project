@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../components/authContext.js'
+import FormField from '../components/FormField'
 import './Registerpage.css'
 
 export default function Register() {
@@ -30,24 +31,9 @@ export default function Register() {
           <div className="card-body p-4">
             <h1 className="h3 text-center mb-4">Rekisteröidy</h1>
             <form onSubmit={submit}>
-              <div className="mb-3">
-                <label className="form-label">
-                  Käyttäjänimi
-                  <input className="form-control" name='username' type='text' required />
-                </label>
-              </div>
-              <div className="mb-3">
-                <label className="form-label">
-                  Sähköposti
-                  <input className="form-control" name='email' type='email' required />
-                </label>
-              </div>
-              <div className="mb-3">
-                <label className="form-label">
-                  Salasana
-                  <input className="form-control" name='password' type='password' required />
-                </label>
-              </div>
+              <FormField label="Käyttäjänimi" name="username" />
+              <FormField label="Sähköposti" name="email" type="email" />
+              <FormField label="Salasana" name="password" type="password" />
               <button className="btn btn-primary w-100" disabled={loading}>Rekisteröidy</button>
             </form>
             {error && <p className="alert alert-danger" role='alert'>{error}</p>}

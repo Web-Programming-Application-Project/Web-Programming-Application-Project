@@ -132,6 +132,16 @@ const findResetUser = async (token) => {
   }
 }
 
+const createResetLink = (user) => {
+  const token = jwt.sign({ sub: String(user.id) }, resetSecret(user), {
+    expiresIn: `${RESET_MINUTES}m`,
+    algorithm: 'HS256',
+    ...RESET_CLAIMS
+  })
+  const baseUrl = process.env.APP_BASE_URL || 'http://localhost:5173'
+  return `${baseUrl}/reset-password?token=${token}`
+}
+
 const requestPasswordReset = async (req, res, next) => {
   try {
     const email = trimmed(req.body?.email).toLowerCase()
@@ -140,13 +150,7 @@ const requestPasswordReset = async (req, res, next) => {
 
     const user = await findByEmail(email)
     if (user) {
-      const token = jwt.sign({ sub: String(user.id) }, resetSecret(user), {
-        expiresIn: `${RESET_MINUTES}m`,
-        algorithm: 'HS256',
-        ...RESET_CLAIMS
-      })
-      const baseUrl = process.env.APP_BASE_URL || 'http://localhost:5173'
-      sendPasswordResetEmail(user.email, `${baseUrl}/reset-password?token=${token}`, RESET_MINUTES)
+      sendPasswordResetEmail(user.email, createResetLink(user), RESET_MINUTES)
         .catch((error) => console.error('Salasanan palautusviestin lähetys epäonnistui', error))
     }
 
@@ -156,17 +160,22 @@ const requestPasswordReset = async (req, res, next) => {
   }
 }
 
+const parseResetConfirm = (body) => {
+  const { token, password } = body ?? {}
+  return typeof token === 'string' && isValidPassword(password) ? { token, password } : null
+}
+
 const confirmPasswordReset = async (req, res, next) => {
   try {
-    const { token, password } = req.body ?? {}
-    if (typeof token !== 'string' || !isValidPassword(password))
+    const data = parseResetConfirm(req.body)
+    if (!data)
       return res.status(400).json({ error: 'Anna kelvollinen salasana (8–128 merkkiä)' })
 
-    const user = await findResetUser(token)
+    const user = await findResetUser(data.token)
     if (!user)
       return res.status(400).json({ error: 'Palautuslinkki on virheellinen tai vanhentunut' })
 
-    await updatePassword(user.id, await argon2.hash(password))
+    await updatePassword(user.id, await argon2.hash(data.password))
     res.json({ message: 'Salasana vaihdettu' })
   } catch (error) {
     next(error)

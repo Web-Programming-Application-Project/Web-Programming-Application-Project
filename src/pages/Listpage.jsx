@@ -44,9 +44,8 @@ function ListCard({ list }) {
   )
 }
 
-export default function Listpage() {
+function useLists() {
   const [lists, setLists] = useState([])
-  const [name, setName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
@@ -70,12 +69,11 @@ export default function Listpage() {
     }
   }, [])
 
-  async function submit(e) {
-    e.preventDefault()
+  async function createList(name) {
     const trimmed = name.trim()
     if (!trimmed) {
       setError('Anna listalle nimi')
-      return
+      return false
     }
 
     setError('')
@@ -87,12 +85,25 @@ export default function Listpage() {
         body: JSON.stringify({ name: trimmed })
       })
       setLists((current) => [data.list, ...current])
-      setName('')
+      return true
     } catch (err) {
       setError(err.message)
+      return false
     } finally {
       setCreating(false)
     }
+  }
+
+  return { lists, error, loading, creating, createList }
+}
+
+export default function Listpage() {
+  const { lists, error, loading, creating, createList } = useLists()
+  const [name, setName] = useState('')
+
+  async function submit(e) {
+    e.preventDefault()
+    if (await createList(name)) setName('')
   }
 
   return (
