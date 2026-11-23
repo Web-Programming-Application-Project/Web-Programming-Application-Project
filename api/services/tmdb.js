@@ -12,6 +12,8 @@ const cache = new Map()
 
 const genreTtl = Number(process.env.TMDB_GENRE_TTL_MS || 24 * 60 * 60 * 1000)
 const popularTtl = Number(process.env.TMDB_POPULAR_TTL_MS || 5 * 60 * 1000)
+const searchTtl = Number(process.env.TMDB_SEARCH_TTL_MS || 5 * 60 * 1000)
+
 
 const cached = (key, ttl, load) => {
   const entry = cache.get(key)
@@ -132,6 +134,22 @@ const fetchPopular = (apiKey, page) =>
     return data
   })
 
+// tmdb järjestää hakutulokset osuvuuden mukaan
+const fetchSearch = (apiKey, query, page) =>
+  cached(`search:${language()}:${query.toLowerCase()}:${page}`, searchTtl, async () => {
+    const { data } = await tmdb.get('/search/movie', {
+      params: {
+        api_key: apiKey,
+        language: language(),
+        query,
+        page,
+        include_adult: false
+      }
+    })
+    return data
+  })
+
+
 // piilotetaan vähän äänestetyt ja julkaisemattomat elokuvat
 const sortGuards = (sortBy) => {
   if (sortBy === 'vote_average.desc') return { 'vote_count.gte': 200 }
@@ -214,4 +232,20 @@ const getMoviesSorted = async (options = {}) => {
   }
 }
 
-export { getPopularMovies, getMovieGenres, getMoviesByCategories, getMoviesSorted }
+const getMoviesBySearch = async (query, options = {}) => {
+  const apiKey = requireApiKey()
+  const { limit, page } = discoverOptions(options)
+  const term = String(query ?? '').trim()
+
+  if (!term) throw badRequest('Anna hakusana')
+
+  try {
+    const data = await fetchSearch(apiKey, term, page)
+    return toPage(data, page, limit)
+  } catch (error) {
+    throw serviceError(error)
+  }
+}
+
+
+export { getPopularMovies, getMovieGenres, getMoviesByCategories, getMoviesSorted, getMoviesBySearch }

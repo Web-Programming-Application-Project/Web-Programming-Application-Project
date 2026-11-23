@@ -1,34 +1,9 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../authContext'
+import Searchbar from '../searchbar/Searchbar'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
 const linkClass = ({ isActive }) => `nav-link ${isActive ? 'active' : ''}`
-
-function NavSearch() {
-  const navigate = useNavigate()
-
-  function submit(e) {
-    e.preventDefault()
-    const query = e.target.elements.q.value.trim()
-
-    if (query) navigate(`/search?q=${encodeURIComponent(query)}`)
-  }
-
-  return (
-    <form className="d-flex" role="search" onSubmit={submit}>
-      <input
-        className="form-control me-2"
-        type="search"
-        name="q"
-        placeholder="Search..."
-        aria-label="Search"
-      />
-      <button className="btn btn-primary" type="submit">
-        Search
-      </button>
-    </form>
-  )
-}
 
 function NavLinks({ user, onLogout }) {
   return (
@@ -92,7 +67,7 @@ export default function Navbar() {
 
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <NavLinks user={user} onLogout={handleLogout} />
-          <NavSearch />
+          <Searchbar />
         </div>
       </div>
     </nav>
