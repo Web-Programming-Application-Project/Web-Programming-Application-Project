@@ -2,7 +2,8 @@ import {
   getPopularMovies,
   getMoviesByCategories,
   getMoviesSorted,
-  getMovieGenres
+  getMovieGenres,
+  getMoviesBySearch
 } from '../services/tmdb.js'
 
 const SORTS = ['popularity.desc', 'vote_average.desc', 'primary_release_date.desc']
@@ -41,6 +42,13 @@ const readSort = (value) => {
   return value
 }
 
+const readSearchTerm = (value) => {
+  const term = String(value ?? '').trim()
+  if (!term) throw badRequest('Anna hakusana')
+  return term
+}
+
+
 const findMovies = (query) => {
   const limit = readLimit(query.limit)
   const page = readPage(query.page)
@@ -64,6 +72,18 @@ const getMovies = async (req, res, next) => {
   }
 }
 
+const searchMovies = async (req, res, next) => {
+  try {
+    const movies = await getMoviesBySearch(readSearchTerm(req.query.q), {
+      limit: readLimit(req.query.limit),
+      page: readPage(req.query.page)
+    })
+    res.status(200).json(movies)
+  } catch (error) {
+    next(error)
+  }
+}
+
 const getGenres = async (req, res, next) => {
   try {
     const genres = await getMovieGenres()
@@ -75,5 +95,6 @@ const getGenres = async (req, res, next) => {
 
 export {
   getMovies,
+  searchMovies,
   getGenres
 }

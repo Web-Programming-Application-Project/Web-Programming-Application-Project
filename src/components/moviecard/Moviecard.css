@@ -1,0 +1,21 @@
+.card {
+    overflow: hidden;
+}
+
+.movie-card {
+    transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.movie-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.movie-no-poster {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 2 / 3;
+    background-color: #f1f1f1;
+    color: #6c757d;
+}
