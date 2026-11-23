@@ -1,4 +1,4 @@
-import './MovieCard.css'
+import './Moviecard.css'
 //credit EnkryptattuDev siirsin vaan omaan tiedostoon.
 export default function MovieCard({ movie }) {
   const year = movie.releaseDate?.slice(0, 4)
