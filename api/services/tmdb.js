@@ -149,6 +149,32 @@ const fetchSearch = (apiKey, query, page) =>
     return data
   })
 
+// Elokuvien haku näyttelijän nimellä
+const fetchPeople = (apiKey, query) =>
+  cached(`people:${language()}:${query.toLowerCase()}`, searchTtl, async () => {
+    const { data } = await tmdb.get('/search/person', {
+      params: {
+        api_key: apiKey,
+        language: language(),
+        query,
+        page: 1,
+        include_adult: false
+      }
+    })
+    return data
+  })
+
+const fetchPersonMovies = (apiKey, personId) =>
+  cached(`person-movies:${language()}:${personId}`, searchTtl, async () => {
+    const { data } = await tmdb.get(`/person/${personId}/movie_credits`, {
+      params: {
+        api_key: apiKey,
+        language: language()
+      }
+    })
+    return data
+  })
+
 
 // piilotetaan vähän äänestetyt ja julkaisemattomat elokuvat
 const sortGuards = (sortBy) => {
@@ -240,12 +266,56 @@ const getMoviesBySearch = async (query, options = {}) => {
   if (!term) throw badRequest('Anna hakusana')
 
   try {
-    const data = await fetchSearch(apiKey, term, page)
-    return toPage(data, page, limit)
+    const [movieData, peopleData] = await Promise.all([
+      fetchSearch(apiKey, term, 1),
+      fetchPeople(apiKey, term)
+    ])
+
+    const actors = (peopleData.results || [])
+      .filter(person => person.known_for_department === 'Acting')
+      .slice(0, 5)
+
+    const actorMovieData = await Promise.all(
+      actors.map(actor => fetchPersonMovies(apiKey, actor.id))
+    )
+
+    const actorMovies = actorMovieData.flatMap(data =>
+      data.cast || []
+    )
+
+    const allMovies = [
+      ...(movieData.results || []),
+      ...actorMovies
+    ]
+
+    const uniqueMovies = [
+      ...new Map(
+        allMovies.map(movie => [movie.id, movie])
+      ).values()
+    ]
+
+    uniqueMovies.sort(
+      (a, b) => (b.popularity || 0) - (a.popularity || 0)
+    )
+
+    const totalPages = Math.max(
+      1,
+      Math.min(Math.ceil(uniqueMovies.length / limit), maxPages)
+    )
+
+    const start = (page - 1) * limit
+
+    return {
+      results: uniqueMovies
+        .slice(start, start + limit)
+        .map(toMovie),
+      page,
+      totalPages
+    }
+
   } catch (error) {
     throw serviceError(error)
   }
 }
-
 
 export { getPopularMovies, getMovieGenres, getMoviesByCategories, getMoviesSorted, getMoviesBySearch }
