@@ -1,7 +1,7 @@
 # Tekninen määrittely: Elokuvaharrastajien yhteisöpalvelu
 
-**Versio:** 0.2 (luonnos)
-**Päivämäärä:** 18.11.2026
+**Versio:** 0.3 (luonnos)
+**Päivämäärä:** 25.11.2026
 **Laatija:** Projektiryhmä SG 8
 **Tila:** Luonnos. Perustuu vaatimusmäärittelyyn 0.1 (29.10.2026) ja projektin nykyiseen lähdekoodiin.
 
@@ -229,7 +229,7 @@ Tavoitemuoto:
 | Movies | `GET /api/movies`, `/trending`, `/:tmdbId`, `/:tmdbId/similar`, `/:tmdbId/showtimes` | FR-01–FR-12 | Suunnittelematta |
 | Reviews | `GET/POST /api/movies/:tmdbId/reviews`, `PATCH/DELETE /api/reviews/:id` | FR-33–FR-42 | Suunnittelematta |
 | Groups | `/api/groups`, jäsenyydet, liittymispyynnöt, ryhmän elokuvat, chat | FR-20–FR-32 | Suunnittelematta |
-| Lists | `/api/lists`, `/api/lists/:type/items`, jakolinkit, `/api/shared/:token` | FR-43–FR-46 | Osittain: haku ja luonti toteutettu |
+| Lists | `/api/lists`, `/api/lists/:id`, `/api/lists/:id/items`, jakolinkit, `/api/shared/:token` | FR-43–FR-46 | Osittain: listojen haku ja luonti sekä listan tietojen haku ja elokuvan lisäys toteutettu |
 | Recommendations | `GET /api/recommendations`, `DELETE /api/recommendations/:tmdbId` | FR-47–FR-48 | Suunnittelematta |
 
 > **TODO:** Täydennä jokaisen endpointin metodi, polku, pyyntö- ja vaste-esimerkki, virhetilat ja autorisaatio, kun se toteutetaan.
@@ -242,8 +242,10 @@ Reititin: `api/routes/listRouter.js`, kiinnitetty `app.js`:ssä polkuun `/api/li
 
 | Metodi | Polku | Kuvaus | Auth | Vaatimus | Tila |
 | --- | --- | --- | --- | --- | --- |
-| GET | `/api/lists` | Kirjautuneen käyttäjän  | Kyllä | FR-43, FR-44 | Toteutettu |
+| GET | `/api/lists` | Kirjautuneen käyttäjän listat | Kyllä | FR-43, FR-44 | Toteutettu |
 | POST | `/api/lists` | Luo uuden listan | Kyllä + CSRF | FR-43, FR-44 | Toteutettu |
+| GET | `/api/lists/:id` | Listan tiedot ja elokuvat (TMDB-tiedot) | Omistaja | FR-43, FR-44 | Toteutettu |
+| POST | `/api/lists/:id/items` | Elokuvan lisäys listalle, runko `{ "tmdbId": 603 }` | Omistaja + CSRF | FR-43, FR-44 | Toteutettu |
 
 Listan vastauskentät (`api/models/List.js`): `id`, `ownerId`, `name`, `shareToken`, `isHidden`, `createdAt`.
 
@@ -251,16 +253,14 @@ Listan vastauskentät (`api/models/List.js`): `id`, `ownerId`, `name`, `shareTok
 
 | Metodi | Polku | Kuvaus | Auth | Vaatimus | Tila |
 | --- | --- | --- | --- | --- | --- |
-| GET | `/api/lists/:id` | Listan tiedot ja elokuvat (TMDB-tiedot) | Omistaja | FR-43, FR-44 | Suunnittelematta |
 | PATCH | `/api/lists/:id` | Nimen ja `isHidden`-tilan päivitys | Omistaja + CSRF | FR-46 | Suunnittelematta |
 | DELETE | `/api/lists/:id` | Listan poisto | Omistaja + CSRF | FR-43 | Suunnittelematta |
-| POST | `/api/lists/:id/items` | Elokuvan lisäys listalle, runko `{ "tmdbId": 603 }` | Omistaja + CSRF | FR-43, FR-44 | Suunnittelematta |
 | DELETE | `/api/lists/:id/items/:tmdbId` | Elokuvan poisto listalta | Omistaja + CSRF | FR-43, FR-44 | Suunnittelematta |
 | POST | `/api/lists/:id/share` | Luo tai palauttaa jakolinkin tunnisteen | Omistaja + CSRF | FR-45 | Suunnittelematta |
 | DELETE | `/api/lists/:id/share` | Peruuttaa jakamisen (`share_token = NULL`) | Omistaja + CSRF | FR-45 | Suunnittelematta |
 | GET | `/api/shared/:token` | Julkinen jaettu lista ilman käyttäjätiliä | – | FR-45, FR-46 | Suunnittelematta |
 
-Frontend: sivut `/lists` (toteutettu) ja `/shared/:token` (suunniteltu, ks. 7.2).
+Frontend: sivut `/lists` ja `/lists/:id` (toteutettu) sekä `/shared/:token` (suunniteltu, ks. 7.2).
 
 **Pyyntö- ja vaste-esimerkit**
 
@@ -308,6 +308,50 @@ HTTP/1.1 200 OK
 }
 ```
 
+```http
+POST /api/lists/12/items
+Content-Type: application/json
+X-CSRF-Token: <token>
+
+{ "tmdbId": 603 }
+```
+
+```http
+HTTP/1.1 201 Created
+
+{ "added": true }
+```
+
+```http
+GET /api/lists/12
+```
+
+```http
+HTTP/1.1 200 OK
+
+{
+  "list": {
+    "id": 12,
+    "ownerId": 1,
+    "name": "Katsottavat",
+    "shareToken": null,
+    "isHidden": false,
+    "createdAt": "2026-11-18T12:00:00.000Z"
+  },
+  "movies": [
+    {
+      "id": 603,
+      "title": "The Matrix",
+      "overview": "...",
+      "posterPath": "/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
+      "releaseDate": "1999-03-31",
+      "voteAverage": 8.2,
+      "genreIds": [28]
+    }
+  ]
+}
+```
+
 **Virhetilat**
 
 | Tilanne | HTTP | Vastaus |
@@ -316,11 +360,13 @@ HTTP/1.1 200 OK
 | Istunto vanhentunut tai käyttäjää ei ole | 401 | `{ "error": "Istunto ei ole voimassa" }` |
 | CSRF-token puuttuu tai ei täsmää | 403 | `{ "error": "CSRF-tarkistus epäonnistui" }` |
 | Nimi puuttuu tai on yli 100 merkkiä | 400 | `{ "error": "Anna listalle nimi (1–100 merkkiä)" }` |
-| Lista ei ole olemassa tai ei kuulu pyytäjälle | 404 | Suunniteltu: `{ "error": { "message": "Listaa ei löydy", "status": 404 } }` |
-| Sama elokuva on jo listalla | 409 | Suunniteltu: "Unique violation" (`23505`) `409` |
+| Listan tunniste on virheellinen | 400 | `{ "error": "Virheellinen lista" }` |
+| Elokuvan tunniste on virheellinen | 400 | `{ "error": "Anna kelvollinen elokuvan tunniste" }` |
+| Lista ei ole olemassa tai ei kuulu pyytäjälle | 404 | `{ "error": "Listaa ei löydy" }` |
+| Sama elokuva on jo listalla | 409 | `{ "error": "Elokuva on jo listalla" }` |
 | Palvelinvirhe | 500 | `{ "error": { "message": "Palvelinvirhe", "status": 500 } }` |
 
-> **Huom:** `ListController` palauttaa validoinnin virheen toistaiseksi merkkijonona (`{ "error": "..." }`), ei luvun 6.1 mukaista `{ "error": { "code", "message" } }`-rakennetta. Muoto yhdenmukaistetaan muiden moduulien kanssa.
+> **Huom:** `ListController` palauttaa validoinnin, omistajuuden ja duplikaatin virheet toistaiseksi merkkijonona (`{ "error": "..." }`), ei luvun 6.1 mukaista `{ "error": { "code", "message" } }`-rakennetta. Odottamattomat virheet palauttaa `errorHandler` muodossa `{ "error": { "message": "...", "status": ... } }`. Muoto yhdenmukaistetaan muiden moduulien kanssa.
 
 **Autorisoinnin ja jakamisen säännöt**
 
@@ -407,11 +453,12 @@ src/
 | `/groups` | Ryhmät | – | FR-23 |
 | `/groups/:id` | Ryhmän sivu | Jäsen | FR-29–FR-32 |
 | `/lists` | Omat listat | Kyllä | FR-43, FR-44 |
+| `/lists/:id` | Listan tiedot ja elokuvat | Kyllä | FR-43, FR-44 |
 | `/shared/:token` | Jaettu lista | – | FR-45 |
 
 ### 7.3 Luokkakaavio
 
-> **Nykytila:** Kaavio on tavoitesuunnitelma. Toteutettu on `AuthController` (`register`, `login`, `me`) ja `User` (`createUser`, `findByIdentifier`, `findById`). Muut luokat toteutetaan vaiheittain.
+> **Nykytila:** Kaavio on tavoitesuunnitelma. Toteutettu on `AuthController` (`register`, `login`, `me`) ja `User` (`createUser`, `findByIdentifier`, `findById`). Lisäksi listat-ominaisuudesta on toteutettu `ListController` (`getLists`, `createList`, `getList`, `addListItem`) ja `List` (`createList`, `findListsByOwner`, `findListById`, `findListItems`, `addListItem`). Muut luokat toteutetaan vaiheittain.
 
 ```mermaid
 classDiagram
@@ -602,3 +649,4 @@ classDiagram
 | --- | --- | --- |
 | 0.1 | 11.11.2026 | Alustava tekninen määrittely vaatimusmäärittelyn ja nykyisen toteutuksen pohjalta |
 | 0.2 | 18.11.2026 | Lisätty listat-ominaisuuden tietokanta (5.5) ja endpointit (6.4) |
+| 0.3 | 25.11.2026 | Listan tietojen haku ja elokuvan lisäys (6.4), listanäkymä (7.2) |

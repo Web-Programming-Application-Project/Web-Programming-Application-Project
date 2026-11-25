@@ -13,6 +13,7 @@ const cache = new Map()
 const genreTtl = Number(process.env.TMDB_GENRE_TTL_MS || 24 * 60 * 60 * 1000)
 const popularTtl = Number(process.env.TMDB_POPULAR_TTL_MS || 5 * 60 * 1000)
 const searchTtl = Number(process.env.TMDB_SEARCH_TTL_MS || 5 * 60 * 1000)
+const movieTtl = Number(process.env.TMDB_MOVIE_TTL_MS || 24 * 60 * 60 * 1000)
 
 
 const cached = (key, ttl, load) => {
@@ -34,7 +35,7 @@ const toMovie = (movie) => ({
   posterPath: movie.poster_path,
   releaseDate: movie.release_date,
   voteAverage: movie.vote_average,
-  genreIds: movie.genre_ids ?? []
+  genreIds: movie.genre_ids ?? movie.genres?.map((genre) => genre.id) ?? []
 })
 
 const serviceError = (error) => {
@@ -175,6 +176,14 @@ const fetchPersonMovies = (apiKey, personId) =>
     return data
   })
 
+const fetchMovieDetails = (apiKey, tmdbId) =>
+  cached(`movie:${language()}:${tmdbId}`, movieTtl, async () => {
+    const { data } = await tmdb.get(`/movie/${tmdbId}`, {
+      params: { api_key: apiKey, language: language() }
+    })
+    return data
+  })
+
 
 // piilotetaan vähän äänestetyt ja julkaisemattomat elokuvat
 const sortGuards = (sortBy) => {
@@ -220,6 +229,17 @@ const getMovieGenres = async () => {
   try {
     const { list } = await loadGenres(apiKey)
     return list
+  } catch (error) {
+    throw serviceError(error)
+  }
+}
+
+const getMovieDetails = async (tmdbId) => {
+  const apiKey = requireApiKey()
+
+  try {
+    const data = await fetchMovieDetails(apiKey, tmdbId)
+    return toMovie(data)
   } catch (error) {
     throw serviceError(error)
   }
@@ -318,4 +338,4 @@ const getMoviesBySearch = async (query, options = {}) => {
   }
 }
 
-export { getPopularMovies, getMovieGenres, getMoviesByCategories, getMoviesSorted, getMoviesBySearch }
+export { getPopularMovies, getMovieGenres, getMoviesByCategories, getMoviesSorted, getMoviesBySearch, getMovieDetails }

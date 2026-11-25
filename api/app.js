@@ -60,7 +60,7 @@ app.use('/api', (req, res, next) => {
   next(error)
 })
 
-app.get(['/lists', '/profile'], requirePageAuth)
+app.get(['/lists', '/lists/:id', '/profile'], requirePageAuth)
 
 app.use(express.static(frontendDist))
 
