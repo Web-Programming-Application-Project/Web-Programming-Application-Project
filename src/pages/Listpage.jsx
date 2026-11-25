@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { api } from '../api.js'
 import './Listpage.css'
 
@@ -32,14 +33,20 @@ function ListForm({ name, onNameChange, onSubmit, creating }) {
 function ListCard({ list }) {
   return (
     <div className="col-12 col-md-6 col-lg-4">
-      <div className="card h-100 shadow-sm">
+      <Link
+        to={`/lists/${list.id}`}
+        className="card h-100 shadow-sm text-decoration-none text-reset list-card"
+      >
         <div className="card-body">
-          <h2 className="h5 card-title">{list.name}</h2>
+          <div className="d-flex justify-content-between align-items-start">
+            <h2 className="h5 card-title">{list.name}</h2>
+            <i className="bi bi-chevron-right text-muted" aria-hidden="true"></i>
+          </div>
           <p className="card-text text-muted mb-0">
             Luotu {new Date(list.createdAt).toLocaleDateString('fi-FI')}
           </p>
         </div>
-      </div>
+      </Link>
     </div>
   )
 }

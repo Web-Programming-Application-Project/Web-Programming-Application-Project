@@ -11,6 +11,7 @@ import Accountpage from './pages/Accountpage'
 import ProtectedRoute from './components/ProtectedRoute'
 import Listpage from './pages/Listpage'
 import Resultspage from './pages/Resultpage'
+import ListDetailpage from './pages/ListDetailpage'
 
 function App() {
 
@@ -28,6 +29,7 @@ function App() {
           </Route>
           <Route element={<ProtectedRoute />}>
             <Route path="/lists" element={<Listpage />} />
+            <Route path="/lists/:id" element={<ListDetailpage />} />
           </Route>
           <Route path="/search" element={<Resultspage />} />
           <Route path="/*" exact element={<NotFound />} />
