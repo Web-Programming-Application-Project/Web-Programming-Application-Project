@@ -31,6 +31,13 @@ export default function ListDetailpage() {
 
   const { list, movies, loading, error } = result
 
+  function handleRemoved(tmdbId) {
+    setResult((current) => ({
+      ...current,
+      movies: current.movies.filter((movie) => movie.id !== tmdbId)
+    }))
+  }
+
   return (
     <div className="container py-4">
       <Link to="/lists" className="small text-decoration-none">
@@ -58,7 +65,7 @@ export default function ListDetailpage() {
             <div className="row g-3 g-md-4 mb-4">
               {movies.map((movie) => (
                 <div key={movie.id} className="col-6 col-md-4 col-lg-3">
-                  <MovieCard movie={movie} />
+                  <MovieCard movie={movie} listId={list.id} listName={list.name} onRemoved={handleRemoved} />
                 </div>
               ))}
             </div>
