@@ -1,5 +1,5 @@
 import validator from 'validator'
-import { createList as createListModel, findListsByOwner, findListById, findListItems, addListItem as addListItemModel } from '../models/List.js'
+import { createList as createListModel, findListsByOwner, findListById, findListItems, addListItem as addListItemModel, removeListItem as removeListItemModel } from '../models/List.js'
 import { getMovieDetails } from '../services/tmdb.js'
 
 const MAX_NAME_LENGTH = 100
@@ -50,7 +50,7 @@ const getList = async (req, res, next) => {
   try {
     const listId = parseId(req.params.id)
     if (!listId) return res.status(400).json({error: 'Virheellinen lista'})
-    
+
     const list = await findOwnedList(listId, req.user.id)
     if (!list) return res.status(404).json({ error: 'Listaa ei löydy' })
 
@@ -83,4 +83,24 @@ const addListItem = async (req, res, next) => {
   }
 }
 
-export { getLists, createList, getList, addListItem }
+const removeListItem = async (req, res, next) => {
+  try {
+    const listId = parseId(req.params.id)
+    const tmdbId = parseId(req.params.tmdbId)
+
+    if (!listId) return res.status(400).json({ error: 'Virheellinen lista' })
+    if (!tmdbId) return res.status(400).json({ error: 'Anna kelvollinen elokuvan tunniste' })
+
+    const list = await findOwnedList(listId, req.user.id)
+    if (!list) return res.status(404).json({ error: 'Listaa ei löydy' })
+
+    const { removed } = await removeListItemModel({ listId: list.id, tmdbId })
+    if (!removed) return res.status(404).json({ error: 'Elokuvaa ei löydy listalta' })
+
+    res.status(200).json({ removed: true })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export { getLists, createList, getList, addListItem, removeListItem }

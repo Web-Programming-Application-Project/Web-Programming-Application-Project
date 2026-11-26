@@ -74,4 +74,16 @@ const addListItem = async ({listId, tmdbId}) => {
   return {added: itemResult.rowCount > 0}
 }
 
-export { createList, findListsByOwner, findListById, findListItems, addListItem }
+const removeListItem = async ({ listId, tmdbId }) => {
+  const result = await pool.query(
+    `DELETE FROM list_items li
+     USING movies m
+     WHERE li.movie_id = m.id
+       AND li.list_id = $1
+       AND m.tmdb_id = $2`,
+    [listId, tmdbId]
+  )
+  return { removed: result.rowCount > 0 }
+}
+
+export { createList, findListsByOwner, findListById, findListItems, addListItem, removeListItem }

@@ -1,14 +1,19 @@
 import { useAuth } from '../authContext.js'
 import AddToListButton from './AddToListButton.jsx'
+import RemoveFromListButton from './RemoveFromListButton.jsx'
 import './Moviecard.css'
 //credit EnkryptattuDev siirsin vaan omaan tiedostoon.
-export default function MovieCard({ movie }) {
+export default function MovieCard({ movie, listId, listName, onRemoved }) {
   const { user } = useAuth()
   const year = movie.releaseDate?.slice(0, 4)
 
   return (
     <div className="card movie-card h-100 border-0 shadow-sm">
-      {user && <AddToListButton movie={movie} />}
+      {user && (listId ? (
+        <RemoveFromListButton movie={movie} listId={listId} listName={listName} onRemoved={onRemoved} />
+      ) : (
+        <AddToListButton movie={movie} />
+      ))}
       {movie.posterPath ? (
         <img
           className="card-img-top"
