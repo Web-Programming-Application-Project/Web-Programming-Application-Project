@@ -4,14 +4,16 @@ vi.mock('../../../api/services/tmdb.js', () => ({
   getPopularMovies: vi.fn(),
   getMoviesByCategories: vi.fn(),
   getMoviesSorted: vi.fn(),
-  getMovieGenres: vi.fn()
+  getMovieGenres: vi.fn(),
+  getMovieSuggestions: vi.fn()
 }))
 
-import { getMovies } from '../../../api/controllers/MovieController.js'
+import { getMovies, suggestMovies } from '../../../api/controllers/MovieController.js'
 import {
   getPopularMovies,
   getMoviesByCategories,
-  getMoviesSorted
+  getMoviesSorted,
+  getMovieSuggestions
 } from '../../../api/services/tmdb.js'
 
 const PAGE = { results: [], page: 1, totalPages: 1 }
@@ -73,6 +75,60 @@ describe('getMovies', () => {
     const { res, next } = await run(query)
 
     expect(next).toHaveBeenCalledWith(expect.objectContaining({ status: 400 }))
+    expect(res.json).not.toHaveBeenCalled()
+  })
+})
+
+describe('suggestMovies', () => {
+  const SUGGESTIONS = { results: [{ id: 1, title: 'Movie 1' }] }
+
+  const runSuggest = async (query) => {
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() }
+    const next = vi.fn()
+
+    await suggestMovies({ query }, res, next)
+    return { res, next }
+  }
+
+  beforeEach(() => {
+    getMovieSuggestions.mockReset().mockResolvedValue(SUGGESTIONS)
+  })
+
+  it('returns suggestions', async () => {
+    const { res } = await runSuggest({ q: 'matrix', limit: '6' })
+
+    expect(getMovieSuggestions).toHaveBeenCalledWith('matrix', { limit: 6 })
+    expect(res.status).toHaveBeenCalledWith(200)
+    expect(res.json).toHaveBeenCalledWith(SUGGESTIONS)
+  })
+
+  it('default limit', async () => {
+    await runSuggest({ q: 'matrix' })
+
+    expect(getMovieSuggestions).toHaveBeenCalledWith('matrix', { limit: 20 })
+  })
+
+  it.each([
+    [{}],
+    [{ q: '   ' }],
+    [{ q: 'matrix', limit: '0' }],
+    [{ q: 'matrix', limit: '21' }],
+    [{ q: 'matrix', limit: 'x' }]
+  ])('invalid %j', async (query) => {
+    const { res, next } = await runSuggest(query)
+
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({ status: 400 }))
+    expect(getMovieSuggestions).not.toHaveBeenCalled()
+    expect(res.json).not.toHaveBeenCalled()
+  })
+
+  it('passes service errors to next', async () => {
+    const error = Object.assign(new Error('tmdb'), { status: 502 })
+    getMovieSuggestions.mockRejectedValue(error)
+
+    const { res, next } = await runSuggest({ q: 'matrix' })
+
+    expect(next).toHaveBeenCalledWith(error)
     expect(res.json).not.toHaveBeenCalled()
   })
 })

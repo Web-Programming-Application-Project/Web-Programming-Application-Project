@@ -45,6 +45,7 @@ const resultsFor = (url, params) => {
   if (url === '/genre/movie/list') return params.language === 'en-US' ? ENGLISH : GENRES
   if (url === '/discover/movie') return { results: [movie(3), movie(4)], total_pages: 3 }
   if (url === '/movie/popular') return { results: [movie(1), movie(2)], total_pages: 900 }
+  if (url === '/search/movie') return { results: [movie(5), movie(6), movie(7)] }
   return { results: [] }
 }
 
@@ -212,6 +213,42 @@ describe('getMoviesSorted', () => {
     await service.getMoviesSorted({ sortBy: 'vote_average.desc' })
 
     expect(discoverCalls()).toHaveLength(1)
+  })
+})
+
+describe('getMovieSuggestions', () => {
+  let service
+
+  const searchCalls = () => get.mock.calls.filter(([url]) => url === '/search/movie')
+
+  beforeEach(async () => {
+    service = await loadService()
+  })
+
+  it('returns mapped movies with limit', async () => {
+    const data = await service.getMovieSuggestions('matrix', { limit: 2 })
+
+    expect(paramsOf('/search/movie').query).toBe('matrix')
+    expect(paramsOf('/search/movie').include_adult).toBe(false)
+    expect(data).toEqual({ results: [mapped(5), mapped(6)] })
+  })
+
+  it('empty query', async () => {
+    await expect(service.getMovieSuggestions('   ')).rejects.toMatchObject({ status: 400 })
+    expect(searchCalls()).toHaveLength(0)
+  })
+
+  it('cache', async () => {
+    await service.getMovieSuggestions('matrix', { limit: 2 })
+    await service.getMovieSuggestions('matrix', { limit: 3 })
+
+    expect(searchCalls()).toHaveLength(1)
+  })
+
+  it('tmdb error', async () => {
+    get.mockRejectedValueOnce({ response: { status: 500 } })
+
+    await expect(service.getMovieSuggestions('matrix')).rejects.toMatchObject({ status: 502 })
   })
 })
 
