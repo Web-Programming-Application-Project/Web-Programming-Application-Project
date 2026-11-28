@@ -3,7 +3,8 @@ import {
   getMoviesByCategories,
   getMoviesSorted,
   getMovieGenres,
-  getMoviesBySearch
+  getMoviesBySearch,
+  getMovieSuggestions
 } from '../services/tmdb.js'
 
 const SORTS = ['popularity.desc', 'vote_average.desc', 'primary_release_date.desc']
@@ -84,6 +85,17 @@ const searchMovies = async (req, res, next) => {
   }
 }
 
+const suggestMovies = async (req, res, next) => {
+  try {
+    const suggestions = await getMovieSuggestions(readSearchTerm(req.query.q), {
+      limit: readLimit(req.query.limit)
+    })
+    res.status(200).json(suggestions)
+  } catch (error) {
+    next(error)
+  }
+}
+
 const getGenres = async (req, res, next) => {
   try {
     const genres = await getMovieGenres()
@@ -96,5 +108,6 @@ const getGenres = async (req, res, next) => {
 export {
   getMovies,
   searchMovies,
+  suggestMovies,
   getGenres
 }

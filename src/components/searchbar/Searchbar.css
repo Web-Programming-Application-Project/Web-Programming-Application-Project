@@ -1,15 +1,25 @@
+.searchbar-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+}
+
 .searchbar {
     display: flex;
     width: 100%;
-    max-width: 400px;
     border: 1px solid #ddd;
     border-radius: 30px;
     overflow: hidden;
     background: white;
 }
 
+.searchbar:focus-within {
+    border-color: #222;
+}
+
 .searchbar input {
     flex: 1;
+    min-width: 0;
     padding: 13px 18px;
     border: none;
     outline: none;
@@ -22,4 +32,72 @@
     color: white;
     padding: 0 20px;
     cursor: pointer;
+}
+
+.searchbar-suggestions {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 1080;
+    max-height: 60vh;
+    margin: 0;
+    padding: 6px;
+    overflow-y: auto;
+    list-style: none;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.searchbar-suggestion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.searchbar-suggestion.active {
+    background: #f1f3f5;
+}
+
+.searchbar-suggestion-poster {
+    flex-shrink: 0;
+    width: 34px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.searchbar-suggestion-poster--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f3f5;
+    color: #adb5bd;
+}
+
+.searchbar-suggestion-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 15px;
+    line-height: 1.25;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.searchbar-suggestion-year {
+    flex-shrink: 0;
+    color: #6c757d;
+    font-size: 13px;
+}
+
+.searchbar-status {
+    padding: 10px 12px;
+    color: #6c757d;
+    font-size: 14px;
 }

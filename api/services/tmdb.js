@@ -278,6 +278,26 @@ const getMoviesSorted = async (options = {}) => {
   }
 }
 
+// hakupalkin ehdotukset
+const getMovieSuggestions = async (query, options = {}) => {
+  const apiKey = requireApiKey()
+  const { limit } = discoverOptions(options)
+  const term = String(query ?? '').trim()
+
+  if (!term) throw badRequest('Anna hakusana')
+
+  try {
+    const data = await fetchSearch(apiKey, term, 1)
+    return {
+      results: (Array.isArray(data?.results) ? data.results : [])
+        .slice(0, limit)
+        .map(toMovie)
+    }
+  } catch (error) {
+    throw serviceError(error)
+  }
+}
+
 const getMoviesBySearch = async (query, options = {}) => {
   const apiKey = requireApiKey()
   const { limit, page } = discoverOptions(options)
@@ -338,4 +358,12 @@ const getMoviesBySearch = async (query, options = {}) => {
   }
 }
 
-export { getPopularMovies, getMovieGenres, getMoviesByCategories, getMoviesSorted, getMoviesBySearch, getMovieDetails }
+export {
+  getPopularMovies,
+  getMovieGenres,
+  getMoviesByCategories,
+  getMoviesSorted,
+  getMoviesBySearch,
+  getMovieSuggestions,
+  getMovieDetails
+}
